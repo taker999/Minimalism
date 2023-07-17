@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".fragments.NoteFragment">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:background="@color/bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:liftOnScroll="true">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_scrollFlags="scroll|enterAlways">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/appTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textSize="30sp"
+                    android:textColor="@color/black"
+                    android:fontFamily="@font/google_sans_bold"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginTop="15dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/appTitle"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:layout_marginVertical="15dp"
+                    android:layout_marginEnd="15dp">
+
+                    <EditText
+                        android:id="@+id/search"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:background="@drawable/rounded_search"
+                        android:drawableStart="@drawable/ic_round_search_24"
+                        android:drawablePadding="5dp"
+                        android:imeOptions="actionSearch"
+                        android:hint="Search here"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/search_light_black"
+                        android:paddingHorizontal="18dp"
+                        android:paddingVertical="5dp"
+                        android:textSize="16sp"
+                        android:importantForAutofill="no"
+                        android:inputType="textFilter"
+                        android:layout_weight="3" />
+
+                </LinearLayout>
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.appbar.MaterialToolbar>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvNote"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="6dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:paddingBottom="5dp"
+        android:transitionGroup="true"
+        tools:listitem="@layout/note_item" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/noteData"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:src="@drawable/ic_no_data"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/addNoteFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="end|bottom"
+        android:focusable="true"
+        android:clickable="true"
+        android:animateLayoutChanges="true"
+        android:clipToPadding="false"
+        android:background="@drawable/fab_btn_corner"
+        android:backgroundTint="@color/add_note_bg"
+        android:layout_margin="16dp">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/innerFab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_round_add_24"
+            android:backgroundTint="@color/add_note_bg"
+            app:elevation="0dp"
+            app:tint="@color/black"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            app:fabSize="normal"
+            android:layout_marginHorizontal="8dp"
+            app:borderWidth="0dp"
+            app:useCompatPadding="false" />
+
+        <TextView
+            android:id="@+id/chatFabText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/google_sans_bold"
+            android:text="@string/add_note"
+            android:textColor="@color/black"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:paddingEnd="20dp"
+            android:paddingStart="0dp"
+            android:layout_gravity="center_vertical"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Button" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

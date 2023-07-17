@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/save"
+        android:title="Save"
+        android:icon="@drawable/ic_baseline_save_24" />
+
+    <item android:id="@+id/print"
+        android:title="Print"
+        android:icon="@drawable/ic_print" />
+
+    <item android:id="@+id/share"
+        android:title="Share"
+        android:icon="@drawable/ic_sharing" />
+
+    <item android:id="@+id/delete"
+        android:title="Delete"
+        android:icon="@drawable/ic_delete" />
+
+</menu>
