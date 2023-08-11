@@ -9,11 +9,19 @@
     <color name="bg">#000000</color>
     <color name="bottom_bar">#222020</color>
 
+    <color name="button_bg">#FF424040</color>
+
     <color name="add_note_bg">#1C1B1B</color>
 
     <color name="light_black">#FAF0F0</color>
     <color name="settings_card_bg">#1C1C1C</color>
-    <color name="search_light_black">#424040</color>
+    <color name="search_light_black">#FAF0F0</color>
+
+    <color name="untitled_black">#D5D2D2</color>
+
+    <color name="back_dim">#FF3F3E3F</color>
+
+    <color name="pattern_back">#FF424242</color>
 
     <!--color palette-->
     <color name="purple">#D4C4E3</color>

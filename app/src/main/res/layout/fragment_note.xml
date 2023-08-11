@@ -81,73 +81,61 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingHorizontal="6dp"
+        android:layoutAnimation="@anim/layout_animation"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:paddingBottom="5dp"
         android:transitionGroup="true"
         tools:listitem="@layout/note_item" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/noteData"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:visibility="gone">
 
         <ImageView
-            android:id="@+id/noteData"
+            android:id="@+id/noData"
             android:layout_width="130dp"
             android:layout_height="130dp"
             android:src="@drawable/ic_no_data"
-            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/google_sans_bold"
+            android:text="Keep Your Life Organized"
+            android:textSize="25sp"
+            android:textColor="@color/black"
+            app:layout_constraintEnd_toEndOf="@+id/noData"
+            app:layout_constraintStart_toStartOf="@+id/noData"
+            app:layout_constraintTop_toBottomOf="@+id/noData" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <LinearLayout
-        android:id="@+id/addNoteFab"
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/innerFab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_gravity="end|bottom"
-        android:focusable="true"
-        android:clickable="true"
-        android:animateLayoutChanges="true"
-        android:clipToPadding="false"
-        android:background="@drawable/fab_btn_corner"
+        android:src="@drawable/ic_edit"
         android:backgroundTint="@color/add_note_bg"
-        android:layout_margin="16dp">
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/innerFab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/ic_round_add_24"
-            android:backgroundTint="@color/add_note_bg"
-            app:elevation="0dp"
-            app:tint="@color/black"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
-            app:fabSize="normal"
-            android:layout_marginHorizontal="8dp"
-            app:borderWidth="0dp"
-            app:useCompatPadding="false" />
-
-        <TextView
-            android:id="@+id/chatFabText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/google_sans_bold"
-            android:text="@string/add_note"
-            android:textColor="@color/black"
-            android:clickable="true"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:paddingEnd="20dp"
-            android:paddingStart="0dp"
-            android:layout_gravity="center_vertical"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Button" />
-
-    </LinearLayout>
+        app:elevation="0dp"
+        app:tint="@color/black"
+        android:layout_margin="20dp"
+        android:layout_gravity="end|bottom"
+        android:contentDescription="Add Note"
+        android:clickable="true"
+        android:focusable="true"
+        app:fabSize="normal"
+        app:borderWidth="0dp"
+        app:useCompatPadding="false"
+        tools:layout_conversion_absoluteHeight="56dp"
+        tools:layout_editor_absoluteY="659dp"
+        tools:layout_editor_absoluteX="331dp"
+        tools:layout_conversion_absoluteWidth="56dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

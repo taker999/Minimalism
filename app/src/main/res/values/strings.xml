@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Minimalism</string>
+    <string name="app_name">NoteMotion</string>
 
     <string name="my_notes">My Notes</string>
     <string name="search_here">Search here....</string>
@@ -15,7 +15,8 @@
         centuries, but also the leap into electronic typesetting,
         remaining essentially unchanged.
     </string>
-    <string name="edited_on">Edited on: %1$s</string>
+    <string name="edited_on">Edited On: %1$s</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="forgot_password"><u>Forgot password?</u></string>
 </resources>

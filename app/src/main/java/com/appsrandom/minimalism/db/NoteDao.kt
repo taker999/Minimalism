@@ -21,6 +21,9 @@ interface NoteDao {
     @Update
     suspend fun updateNote(note: Note)
 
+    @Query("UPDATE notes_table set lock=0")
+    suspend fun deleteAllLocks()
+
     @Query("SELECT * FROM notes_table ORDER BY id ASC")
     fun getAllNotes(): LiveData<List<Note>>
 

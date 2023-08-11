@@ -1,17 +1,14 @@
 package com.appsrandom.minimalism.fragments
 
-import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -37,10 +34,6 @@ class NoteFragment : Fragment() {
     private val noteViewModel: NoteViewModel by activityViewModels()
     private lateinit var rvNotesAdapter: RVNotesAdapter
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requireView().hideKeyboard()
@@ -49,21 +42,12 @@ class NoteFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         binding = FragmentNoteBinding.inflate(layoutInflater, container, false)
 
-        binding.addNoteFab.setOnClickListener {
-            val intent = Intent(context, CreateOrEditNoteActivity::class.java)
-            startActivity(intent)
-        }
-
         binding.innerFab.setOnClickListener {
-            val intent = Intent(context, CreateOrEditNoteActivity::class.java)
-            startActivity(intent)
-        }
-
-        binding.chatFabText.setOnClickListener {
+            binding.innerFab.isClickable = false
             val intent = Intent(context, CreateOrEditNoteActivity::class.java)
             startActivity(intent)
         }
@@ -120,22 +104,22 @@ class NoteFragment : Fragment() {
             return@setOnTouchListener false
         }
 
-        binding.rvNote.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
-
-            when {
-                scrollY > oldScrollY -> {
-                    binding.chatFabText.visibility = View.GONE
-                }
-
-                scrollX == scrollY -> {
-                    binding.chatFabText.visibility = View.VISIBLE
-                }
-                else -> {
-                    binding.chatFabText.visibility = View.VISIBLE
-                }
-            }
-
-        }
+//        binding.rvNote.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
+//
+//            when {
+//                scrollY > oldScrollY -> {
+//                    binding.chatFabText.visibility = View.GONE
+//                }
+//
+//                scrollX == scrollY -> {
+//                    binding.chatFabText.visibility = View.VISIBLE
+//                }
+//                else -> {
+//                    binding.chatFabText.visibility = View.VISIBLE
+//                }
+//            }
+//
+//        }
 
         return binding.root
     }
@@ -168,7 +152,7 @@ class NoteFragment : Fragment() {
                     }
                 }).apply {
                     animationMode = Snackbar.ANIMATION_MODE_FADE
-                    setAnchorView(R.id.addNoteFab)
+                    setAnchorView(R.id.innerFab)
                 }
                 snackBar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.yellowOrange))
                 snackBar.show()
@@ -213,34 +197,7 @@ class NoteFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-
-        try {
-            val strtext = requireArguments().getString("edttext")
-            Log.d("ddd", strtext.toString())
-        } catch (_: Exception) {
-
-        }
-
-
-        val snackBar = Snackbar.make(requireView(), "Note Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-            override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
-                super.onDismissed(transientBottomBar, event)
-            }
-
-            override fun onShown(transientBottomBar: Snackbar?) {
-
-                transientBottomBar?.setAction("UNDO") {
-
-                }
-
-                super.onShown(transientBottomBar)
-            }
-        }).apply {
-            animationMode = Snackbar.ANIMATION_MODE_FADE
-        }
-        snackBar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.yellowOrange))
-        snackBar.show()
-
         recyclerViewDisplay()
+        binding.innerFab.isClickable = true
     }
 }

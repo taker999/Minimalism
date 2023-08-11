@@ -13,10 +13,23 @@
         android:theme="@style/Theme.Minimalism"
         tools:targetApi="31">
         <activity
+            android:name=".activities.SetEmailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.InputPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.CreatePasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.PrivacyAndPolicyActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.CreateOrEditNoteActivity"
             android:exported="false" />
         <activity
             android:name=".activities.MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

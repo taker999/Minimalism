@@ -20,4 +20,8 @@ class NoteRepository(private val db: NoteDatabase) {
         db.getNoteDao().updateNote(note)
     }
 
+    suspend fun deleteAllLocks() {
+        db.getNoteDao().deleteAllLocks()
+    }
+
 }

@@ -10,6 +10,10 @@ import kotlinx.coroutines.launch
 
 class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
 
+    fun deleteAllLocks() = viewModelScope.launch(Dispatchers.IO) {
+        repository.deleteAllLocks()
+    }
+
     fun deleteNote(note: Note) = viewModelScope.launch(Dispatchers.IO) {
         repository.deleteNote(note)
     }

@@ -4,9 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.appsrandom.minimalism.models.Note
 
-@Database(entities = [Note::class], version = 1, exportSchema = false)
+
+@Database(entities = [Note::class], version = 2, exportSchema = false)
 abstract class NoteDatabase: RoomDatabase() {
 
     abstract fun getNoteDao(): NoteDao
@@ -17,6 +20,13 @@ abstract class NoteDatabase: RoomDatabase() {
         @Volatile
         private var INSTANCE: NoteDatabase? = null
 
+        private val MIGRATION_1_2: Migration = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Since we didn't alter the table, there's nothing else to do here.
+                db.execSQL("ALTER TABLE notes_table ADD COLUMN lock TEXT DEFAULT '0'")
+            }
+        }
+
         fun getDatabase(context: Context): NoteDatabase {
             // if the INSTANCE is not null, then return it,
             // if it is, then create the database
@@ -25,7 +35,8 @@ abstract class NoteDatabase: RoomDatabase() {
                     context.applicationContext,
                     NoteDatabase::class.java,
                     "note_database"
-                ).build()
+                ).addMigrations(MIGRATION_1_2)
+                    .build()
                 INSTANCE = instance
                 // return instance
                 instance

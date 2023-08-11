@@ -1,6 +1,6 @@
 package com.appsrandom.minimalism.activities
 
-import android.app.Activity
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatDelegate
@@ -33,10 +33,10 @@ class MainActivity : AppCompatActivity() {
         val isDarkModeOn = sharedPreferences?.getBoolean("isDarkModeOn", false)
 
         if (isDarkModeOn as Boolean) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         }
         else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
         binding.bottomNavigationView.setOnItemSelectedListener {
@@ -46,11 +46,19 @@ class MainActivity : AppCompatActivity() {
                     return@setOnItemSelectedListener true
                 }
                 R.id.navSettings -> {
-                    loadFragment(SettingsFragment(), false)
+                    val fm = supportFragmentManager
+                    val ft = fm.beginTransaction().setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+
+                    ft.replace(R.id.container, SettingsFragment())
+                    ft.commit()
                     return@setOnItemSelectedListener true
                 }
             }
             return@setOnItemSelectedListener false
+        }
+
+        binding.bottomNavigationView.setOnItemReselectedListener {
+            return@setOnItemReselectedListener
         }
 
         val noteRepository = NoteRepository(NoteDatabase.getDatabase(this))
@@ -64,9 +72,25 @@ class MainActivity : AppCompatActivity() {
 //        })
     }
 
+    override fun onStart() {
+        super.onStart()
+        val sharedPreferencesAppLock = getSharedPreferences("sharedPrefsAppLock", 0)
+        val isAppLockOn = sharedPreferencesAppLock?.getBoolean("appLock", false)
+
+        val isAppUnlocked = intent.getBooleanExtra("appUnlocked", false)
+
+        if (isAppLockOn as Boolean && !isAppUnlocked) {
+            val intent = Intent(this, InputPasswordActivity::class.java)
+            intent.putExtra("whichActivity", "Main")
+            startActivity(intent)
+            finish()
+        }
+    }
+
     private fun loadFragment(fragment: Fragment, flag: Boolean) {
         val fm = supportFragmentManager
-        val ft = fm.beginTransaction()
+        val ft = fm.beginTransaction().setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right)
+
         if (flag) {
             ft.add(R.id.container, fragment)
         } else {

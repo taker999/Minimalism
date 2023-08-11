@@ -6,14 +6,22 @@
 
     <color name="colorPrimaryDark">#EAE0E0</color>
 
-    <color name="bg">#FBF5F5</color>
+    <color name="bg">@color/background_material_light</color>
     <color name="bottom_bar">#F6F1F1</color>
+
+    <color name="button_bg">#FBF5F5</color>
 
     <color name="add_note_bg">#E2E0E0</color>
 
     <color name="light_black">#424040</color>
     <color name="search_light_black">#424040</color>
     <color name="settings_card_bg">#FFFFFF</color>
+
+    <color name="untitled_black">#4A4747</color>
+
+    <color name="back_dim">#FF3F3E3F</color>
+
+    <color name="pattern_back">#FFFFFF</color>
 
     <!--color palette-->
     <color name="purple">#D4C4E3</color>

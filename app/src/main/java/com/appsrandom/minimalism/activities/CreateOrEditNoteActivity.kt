@@ -1,37 +1,30 @@
 package com.appsrandom.minimalism.activities
 
-import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.print.PrintAttributes
 import android.print.PrintDocumentAdapter
 import android.print.PrintManager
-import android.util.Log
 import android.view.MenuInflater
 import android.view.View
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.appsrandom.minimalism.R
 import com.appsrandom.minimalism.adapters.RVNotesAdapter
 import com.appsrandom.minimalism.databinding.ActivityCreateOrEditNoteBinding
 import com.appsrandom.minimalism.databinding.BottomSheetBinding
 import com.appsrandom.minimalism.db.NoteDatabase
-import com.appsrandom.minimalism.fragments.NoteFragment
 import com.appsrandom.minimalism.models.Note
 import com.appsrandom.minimalism.repository.NoteRepository
 import com.appsrandom.minimalism.viewModel.NoteViewModel
 import com.appsrandom.minimalism.viewModel.NoteViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.snackbar.BaseTransientBottomBar
-import com.google.android.material.snackbar.Snackbar
-import com.r0adkll.slidr.Slidr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -44,37 +37,24 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCreateOrEditNoteBinding
     private lateinit var rvNotesAdapter: RVNotesAdapter
-    private var note: Note? = null
     private var color = -1
     private var colorMatch = -1
     private var id = -1
     private lateinit var noteViewModel: NoteViewModel
     private val currentDate = SimpleDateFormat.getInstance().format(Date())
     private val job = CoroutineScope(Dispatchers.Main)
-    private var obj: ArrayList<Any> = ArrayList()
     private var title: String? = null
     private var content: String? = null
     private var date: String? = null
-    private var result: String? = null
+    private var isLocked: String? = "0"
     private var currentPosition: Int = -1
+    private lateinit var popupMenu: PopupMenu
+    private lateinit var sharedPreferencesPassword: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCreateOrEditNoteBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        Slidr.attach(this)
-
-        val noteRepository = NoteRepository(NoteDatabase.getDatabase(this))
-        val noteViewModelFactory = NoteViewModelFactory(noteRepository)
-        noteViewModel = ViewModelProvider(this, noteViewModelFactory)[NoteViewModel::class.java]
-
-        rvNotesAdapter = RVNotesAdapter()
-
-        showMenu()
-
-//        args = intent.getBundleExtra("notes")
-//        obj = args?.getSerializable("ARRAYLIST") as ArrayList<Any>
 
         title = intent.getStringExtra("title")
         content = intent.getStringExtra("content")
@@ -82,24 +62,26 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
         color = intent.getIntExtra("color", -1)
         id = intent.getIntExtra("id", -1)
         currentPosition = intent.getIntExtra("currentPosition", -1)
+        isLocked = if (intent.getStringExtra("isLocked") == null) {
+            "0"
+        } else {
+            "1"
+        }
 
         colorMatch = color
 
-        val html = """<!DOCTYPE html>
-<html>
-<head>
-	<title></title>
-	<link rel="stylesheet" type="text/css" href="file:android_asset/CreatePdf.css">
-</head>
-<body>
+        sharedPreferencesPassword = getSharedPreferences("sharedPrefsPattern", 0)
 
-<h1 style="font-size: xx-large">$title</h1>
-<p style="font-size: x-large">$content</p>
+        val noteRepository = NoteRepository(NoteDatabase.getDatabase(this))
+        val noteViewModelFactory = NoteViewModelFactory(noteRepository)
+        noteViewModel = ViewModelProvider(this, noteViewModelFactory)[NoteViewModel::class.java]
 
-</body>
+        rvNotesAdapter = RVNotesAdapter()
 
-</html>"""
-        binding.webView.loadDataWithBaseURL(null, html, "text/html", "utf-8", null)
+        popupMenu = PopupMenu(this, binding.popUpMenu)
+        val inflater: MenuInflater = popupMenu.menuInflater
+        inflater.inflate(R.menu.edit_note_items, popupMenu.menu)
+        showMenu()
 
         if (title != null) {
             val sharedPreferences = getSharedPreferences("sharedPrefs", MODE_PRIVATE)
@@ -110,7 +92,7 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
             }
             binding.apply {
                 etTitle.setText(title)
-                etNoteContent.renderMD(content.toString())
+                etNoteContent.setText(content.toString())
                 lastEdited.text = getString(R.string.edited_on, date)
                 job.launch {
                     delay(10)
@@ -121,6 +103,8 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
 
             }
             this.window.statusBarColor = color
+        } else {
+            binding.lastEdited.text = getString(R.string.edited_on, SimpleDateFormat.getDateInstance().format(Date()))
         }
 
         onBackPressedDispatcher.addCallback(
@@ -132,46 +116,8 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
             })
 
         binding.backButton.setOnClickListener {
-            if (binding.etTitle.text.toString().isNotBlank() && binding.etNoteContent.getMD().isNotBlank()) {
-                when (title) {
-                    null -> {
-                        noteViewModel.insertNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.getMD(), currentDate, color))
-                        finish()
-                    }
-                    else -> {
-                        if (binding.etTitle.text.toString() == title && binding.etNoteContent.getMD() == content && colorMatch == color) {
-                            finish()
-                        } else {
-                            noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.getMD(), currentDate, color, id))
-                            finish()
-                        }
-
-                    }
-                }
-            } else {
-                finish()
-            }
+            saveNote()
         }
-
-//        binding.saveNote.setOnClickListener {
-//            saveNote()
-//            createPdf()
-//        }
-
-//        try {
-//            binding.etNoteContent.setOnFocusChangeListener { _, hasFocus ->
-//                if (hasFocus) {
-//                    binding.bottomBar.visibility = View.VISIBLE
-//                    binding.etNoteContent.setStylesBar(binding.styleBar)
-//                } else {
-//                    binding.bottomBar.visibility = View.GONE
-//                }
-//            }
-//        } catch (_: Exception) {
-//
-//        }
-
-        binding.lastEdited.text = getString(R.string.edited_on, SimpleDateFormat.getDateInstance().format(Date()))
 
         binding.fabColorPic.setOnClickListener {
             val bottomSheetDialog = BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
@@ -204,38 +150,54 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
     }
 
     private fun exitOnBackPressed() {
-        if (binding.etTitle.text.toString().isNotBlank() && binding.etNoteContent.getMD().isNotBlank()) {
-            when (title) {
-                null -> {
-                    noteViewModel.insertNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.getMD(), currentDate, color))
-                    finish()
-                }
-                else -> {
-                    if (binding.etTitle.text.toString() == title && binding.etNoteContent.getMD() == content && colorMatch == color) {
-                        finish()
-                    } else {
-                        noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.getMD(), currentDate, color, id))
-                        finish()
-                    }
-
-                }
-            }
-        } else {
-            finish()
-        }
+        saveNote()
     }
 
     private fun saveNote() {
-        if (binding.etTitle.text.toString().isBlank() || binding.etNoteContent.getMD().isBlank()) {
-            Toast.makeText(this, "Empty", Toast.LENGTH_SHORT).show()
-        } else {
+        if (binding.etTitle.text.toString().isBlank() && binding.etNoteContent.text.toString().isBlank()) {
+            finish()
+        } else if (binding.etTitle.text.toString().isBlank()) {
             when (title) {
                 null -> {
-                    noteViewModel.insertNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.getMD(), currentDate, color))
+                    noteViewModel.insertNote(Note("", binding.etNoteContent.text.toString(), currentDate, color))
+                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                     finish()
                 }
                 else -> {
-                    noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.getMD(), currentDate, color, id))
+                    if (content != binding.etNoteContent.text.toString() || colorMatch != color) {
+                        noteViewModel.updateNote(Note("", binding.etNoteContent.text.toString(), currentDate, color, isLocked, id))
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                    }
+                    finish()
+                }
+            }
+        } else if (binding.etNoteContent.text.toString().isBlank()) {
+            when (title) {
+                null -> {
+                    noteViewModel.insertNote(Note(binding.etTitle.text.toString(), "", currentDate, color))
+                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                else -> {
+                    if (title != binding.etTitle.text.toString() || colorMatch != color){
+                        noteViewModel.updateNote(Note(binding.etTitle.text.toString(), "", currentDate, color, isLocked, id))
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                    }
+                    finish()
+                }
+            }
+        } else {
+            when (title) {
+                null -> {
+                    noteViewModel.insertNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color))
+                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                else -> {
+                    if (title != binding.etTitle.text.toString() || content != binding.etNoteContent.text.toString() || colorMatch != color) {
+                        noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, isLocked, id))
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                    }
                     finish()
                 }
             }
@@ -243,21 +205,52 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
     }
 
     private fun createPdf() {
-        val printManager = this@CreateOrEditNoteActivity.getSystemService(PRINT_SERVICE) as PrintManager
-        val adapter: PrintDocumentAdapter?
-        val jobName = getString(R.string.app_name) + "Document"
-        adapter=binding.webView.createPrintDocumentAdapter(jobName)
-        printManager.print(
-            jobName,
-            adapter, PrintAttributes.Builder().build()
-        )
+        if (binding.etTitle.text.toString().isBlank() && binding.etNoteContent.text.toString().isBlank()) {
+            Toast.makeText(this, "Can't print empty note...", Toast.LENGTH_SHORT).show()
+        } else {
+            val printTitle = binding.etTitle.text.toString().trim()
+            val printContent = binding.etNoteContent.text.toString().trim()
+
+
+
+            val html = """<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="file:android_asset/CreatePdf.css">
+</head>
+<body>
+
+<h1 style="font-size: xx-large">$printTitle</h1>
+<p style="font-size: x-large">$printContent</p>
+
+</body>
+
+</html>"""
+            binding.webView.loadDataWithBaseURL(null, html, "text/html", "utf-8", null)
+
+            val printManager = this@CreateOrEditNoteActivity.getSystemService(PRINT_SERVICE) as PrintManager
+            val adapter: PrintDocumentAdapter?
+            val jobName = getString(R.string.app_name) + "Document"
+            adapter=binding.webView.createPrintDocumentAdapter(jobName)
+            printManager.print(
+                jobName,
+                adapter, PrintAttributes.Builder().build()
+            )
+        }
     }
 
     private fun showMenu() {
-        val popUpMenu = PopupMenu(this, binding.popUpMenu)
-        val inflater: MenuInflater = popUpMenu.menuInflater
-        inflater.inflate(R.menu.edit_note_items, popUpMenu.menu)
-        popUpMenu.setOnMenuItemClickListener { menuItem ->
+//        popupMenu = PopupMenu(this, binding.popUpMenu)
+//        val inflater: MenuInflater = popupMenu.menuInflater
+//        inflater.inflate(R.menu.edit_note_items, popupMenu.menu)
+        if (isLocked == "0") {
+            popupMenu.menu.findItem(R.id.lock).setIcon(R.drawable.ic_lock).title = "Lock"
+        } else {
+            popupMenu.menu.findItem(R.id.lock).setIcon(R.drawable.ic_unlock).title = "Unlock"
+        }
+
+        popupMenu.setOnMenuItemClickListener { menuItem ->
             when(menuItem.itemId){
                 R.id.save -> {
                     saveNote()
@@ -266,10 +259,22 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
                     createPdf()
                 }
                 R.id.share -> {
-
+                    shareNote()
                 }
                 R.id.delete -> {
-                    deleteNote(currentPosition)
+                    deleteNote()
+                }
+                R.id.lock -> {
+                    if (title == null) {
+                        lockNoteOnCreatingNote()
+                    } else if (isLocked == "0") {
+                        lockNote()
+                    } else {
+                        Toast.makeText(this, "Unlocked", Toast.LENGTH_SHORT).show()
+                        isLocked = "0"
+                        noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, isLocked, id))
+                        popupMenu.menu.findItem(R.id.lock).setIcon(R.drawable.ic_lock).title = "Lock"
+                    }
                 }
             }
             true
@@ -278,47 +283,87 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
             try {
                 val popUp = PopupMenu::class.java.getDeclaredField("mPopup")
                 popUp.isAccessible = true
-                val menu = popUp.get(popUpMenu)
+                val menu = popUp.get(popupMenu)
                 menu.javaClass
                     .getDeclaredMethod("setForceShowIcon", Boolean::class.java)
                     .invoke(menu, true)
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                popUpMenu.show()
+                popupMenu.show()
             }
         }
     }
 
-    private fun deleteNote(currentPosition: Int) {
-        noteViewModel.deleteNote(Note("", "", "", -1, id))
-        var actionBtnTapped = false
-        val snackBar = Snackbar.make(binding.noteContentFragmentParent, "Note Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-            override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
-                super.onDismissed(transientBottomBar, event)
+    private fun lockNoteOnCreatingNote() {
+        val isPasswordSet = sharedPreferencesPassword.getString("password", "0")
+        if (isPasswordSet == "0") {
+            startActivity(Intent(this, CreatePasswordActivity::class.java))
+        } else {
+            if (binding.etTitle.text.toString().isBlank() && binding.etNoteContent.text.toString().isBlank()) {
+                finish()
+            } else if (binding.etTitle.text.toString().isBlank()) {
+                noteViewModel.insertNote(Note("", binding.etNoteContent.text.toString(), currentDate, color, "1"))
+                Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show()
+            } else if (binding.etNoteContent.text.toString().isBlank()) {
+                noteViewModel.insertNote(Note(binding.etTitle.text.toString(), "", currentDate, color, "1"))
+                Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show()
+            } else {
+                noteViewModel.insertNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, "1"))
+                Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show()
             }
-
-            override fun onShown(transientBottomBar: Snackbar?) {
-
-                transientBottomBar?.setAction("UNDO") {
-                    noteViewModel.insertNote(Note(title.toString(), content.toString(), date.toString(), color, id))
-                    actionBtnTapped = true
-                }
-
-                super.onShown(transientBottomBar)
-            }
-        }).apply {
-            animationMode = Snackbar.ANIMATION_MODE_FADE
+            finish()
         }
-        snackBar.setActionTextColor(ContextCompat.getColor(applicationContext, R.color.yellowOrange))
-        snackBar.show()
+    }
 
-        val bundle = Bundle()
-        bundle.putString("edttext", "From Activity")
-// set Fragmentclass Arguments
-// set Fragmentclass Arguments
-        val fragobj = NoteFragment()
-        fragobj.arguments = bundle
-        finish()
+    private fun lockNote() {
+        val isPasswordSet = sharedPreferencesPassword.getString("password", "0")
+        if (isPasswordSet == "0") {
+            startActivity(Intent(this, CreatePasswordActivity::class.java))
+        } else {
+            Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show()
+            isLocked = "1"
+            popupMenu.menu.findItem(R.id.lock).setIcon(R.drawable.ic_unlock).title = "Unlock"
+            noteViewModel.updateNote(Note(title.toString(), content.toString(), date.toString(), color, isLocked, id))
+        }
+    }
+
+    private fun shareNote() {
+        if (binding.etTitle.text.toString().isBlank() && binding.etNoteContent.text.toString().isBlank()) {
+            Toast.makeText(this, "Can't share empty note...", Toast.LENGTH_SHORT).show()
+        } else {
+            CoroutineScope(Dispatchers.Default).launch {
+                val shareIntent = Intent(Intent.ACTION_SEND)
+                shareIntent.type = "text/plain"
+                shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Minimalism")
+                val shareTitle = binding.etTitle.text.toString().trim()
+                val shareContent = binding.etNoteContent.text.toString().trim()
+                val shareMessage = (shareTitle+"\n"+shareContent).trim()
+                shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
+                startActivity(Intent.createChooser(shareIntent, "choose one..."))
+            }
+        }
+    }
+
+    private fun deleteNote() {
+
+        if (title == null) {
+            finish()
+        } else {
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Delete Note")
+            builder.setMessage("Are you sure you want to delete this note permanently?")
+            builder.setIcon(R.drawable.ic_delete)
+                .setPositiveButton("Yes") { _, _ ->
+                    Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
+                    noteViewModel.deleteNote(Note("", "", "", -1, isLocked, id))
+                    finish()
+                }
+                .setNegativeButton("No") { _, _ ->
+                    // User cancelled the dialog
+                }
+            // Create the AlertDialog object and return it
+            builder.show()
+        }
     }
 }

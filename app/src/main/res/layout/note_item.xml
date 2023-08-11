@@ -11,13 +11,12 @@
         android:id="@+id/noteItemLayoutParent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
         android:focusable="true"
         android:padding="5dp"
         app:cardCornerRadius="13dp"
-        app:cardElevation="5dp"
+        android:layout_margin="3dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -34,16 +33,26 @@
                 android:layout_marginHorizontal="4dp"
                 android:ellipsize="end"
                 android:fontFamily="@font/google_sans_medium"
+                android:maxLines="3"
                 android:padding="5dp"
-                tools:text="This is a title"
                 android:textAlignment="textStart"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:maxLines="10"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="This is a title" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/light_black"
+                android:layout_marginHorizontal="10dp"
+                app:layout_constraintBottom_toBottomOf="@+id/noteItemTitle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/noteItemTitle" />
 
             <TextView
                 android:id="@+id/noteContentItem"
@@ -54,29 +63,31 @@
                 android:layout_marginBottom="3dp"
                 android:ellipsize="end"
                 android:fontFamily="@font/google_sans_medium"
-                android:maxLines="12"
+                android:maxLines="10"
                 android:padding="5dp"
-                tools:text="@string/some_text"
                 android:textColor="@color/light_black"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/noteItemTitle" />
+                app:layout_constraintTop_toBottomOf="@id/noteItemTitle"
+                tools:text="@string/some_text" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/noteDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="4dp"
+                android:drawableStart="@drawable/ic_outline_calendar_today_24"
+                android:drawablePadding="6dp"
+                android:drawableTint="@color/black"
+                android:backgroundTint="@color/add_note_bg"
                 android:ellipsize="end"
                 android:fontFamily="@font/google_sans_regular"
+                android:background="@drawable/date_rounded"
                 android:padding="5dp"
                 android:textAlignment="textStart"
                 android:textColor="@color/black"
                 android:textSize="12sp"
-                android:drawableStart="@drawable/ic_outline_calendar_today_24"
-                android:drawablePadding="6dp"
-                android:drawableTint="@color/black"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/noteContentItem"
                 tools:text="dd-mm-yy" />

@@ -25,6 +25,7 @@
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
+            android:contentDescription="Back"
             android:src="@drawable/ic_round_arrow_back_24"
             app:layout_constraintBottom_toBottomOf="@+id/lastEdited"
             app:layout_constraintStart_toStartOf="parent"
@@ -36,6 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/date_rounded"
+            android:backgroundTint="@color/add_note_bg"
             android:ellipsize="end"
             android:fontFamily="@font/google_sans_regular"
             android:paddingHorizontal="13dp"
@@ -56,6 +58,10 @@
             android:layout_height="wrap_content"
             android:src="@drawable/ic_menu"
             android:background="#00000000"
+            android:padding="9dp"
+            android:contentDescription="Menu"
+            android:clickable="true"
+            android:focusable="true"
             android:layout_marginEnd="5dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -97,7 +103,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <com.yahiaangelo.markdownedittext.MarkdownEditText
+                <EditText
                     android:id="@+id/etNoteContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -135,7 +141,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:layout_margin="15dp"
+            android:layout_margin="20dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Pick Color"
             android:src="@drawable/ic_baseline_color_lens_24"
             app:backgroundTint="@color/purple"
             app:tint="@color/fab_black" />
@@ -152,16 +161,6 @@
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <com.yahiaangelo.markdownedittext.MarkdownStylesBar
-            android:id="@+id/styleBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:elevation="5dp"
-            android:padding="0dp" />
-
-    </LinearLayout>
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
