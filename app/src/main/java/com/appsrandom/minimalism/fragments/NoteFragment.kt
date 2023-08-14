@@ -1,6 +1,7 @@
 package com.appsrandom.minimalism.fragments
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Bundle
 import android.text.Editable
@@ -9,11 +10,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.appsrandom.minimalism.R
@@ -24,6 +27,7 @@ import com.appsrandom.minimalism.databinding.FragmentNoteBinding
 import com.appsrandom.minimalism.utils.SwipeToDelete
 import com.appsrandom.minimalism.utils.hideKeyboard
 import com.appsrandom.minimalism.viewModel.NoteViewModel
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import java.util.concurrent.TimeUnit
@@ -33,6 +37,7 @@ class NoteFragment : Fragment() {
     private lateinit var binding: FragmentNoteBinding
     private val noteViewModel: NoteViewModel by activityViewModels()
     private lateinit var rvNotesAdapter: RVNotesAdapter
+    private lateinit var sharedPreferencesView: SharedPreferences
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -45,6 +50,14 @@ class NoteFragment : Fragment() {
     ): View {
         // Inflate the layout for this fragment
         binding = FragmentNoteBinding.inflate(layoutInflater, container, false)
+
+        sharedPreferencesView = activity?.getSharedPreferences("sharedPrefsView", 0) as SharedPreferences
+
+        binding.viewFab.setOnClickListener {
+            binding.viewFab.isClickable = false
+            val intent = Intent(context, CreateOrEditNoteActivity::class.java)
+            startActivity(intent)
+        }
 
         binding.innerFab.setOnClickListener {
             binding.innerFab.isClickable = false
@@ -104,22 +117,72 @@ class NoteFragment : Fragment() {
             return@setOnTouchListener false
         }
 
-//        binding.rvNote.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
-//
-//            when {
-//                scrollY > oldScrollY -> {
-//                    binding.chatFabText.visibility = View.GONE
-//                }
-//
-//                scrollX == scrollY -> {
-//                    binding.chatFabText.visibility = View.VISIBLE
-//                }
-//                else -> {
-//                    binding.chatFabText.visibility = View.VISIBLE
-//                }
-//            }
-//
-//        }
+        binding.popUpMenu.setOnClickListener {
+            val bottomSheetDialog = BottomSheetDialog(requireContext(), R.style.BottomSheetTheme)
+            val sheetView = LayoutInflater.from(activity).inflate(R.layout.modal_bottom_sheet, null)
+
+            val editorView = sharedPreferencesView.edit()
+
+            val listLayout = sheetView.findViewById<LinearLayout>(R.id.list)
+            val gridLayout = sheetView.findViewById<LinearLayout>(R.id.grid)
+
+            when(sharedPreferencesView.getString("view", "0")) {
+                "list" -> {
+                    listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                    gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                }
+                "grid" -> {
+                    gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                    listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                }
+                else -> {
+                    gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                    listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                }
+            }
+
+            listLayout.setOnClickListener {
+                editorView?.putString("view", "list")
+                editorView?.apply()
+                recyclerViewDisplay()
+
+                bottomSheetDialog.dismiss()
+            }
+
+            gridLayout.setOnClickListener {
+                editorView?.putString("view", "grid")
+                editorView?.apply()
+                recyclerViewDisplay()
+
+                bottomSheetDialog.dismiss()
+            }
+
+            bottomSheetDialog.setContentView(sheetView)
+            bottomSheetDialog.show()
+        }
+
+        binding.rvNote.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
+
+            when {
+                scrollY > oldScrollY -> {
+                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.GONE
+                    binding.addNoteFab.visibility = View.GONE
+                    binding.innerFab.isClickable = true
+                }
+
+                scrollX == scrollY -> {
+                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
+                    binding.addNoteFab.visibility = View.VISIBLE
+                    binding.innerFab.isClickable = false
+                }
+                else -> {
+                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
+                    binding.addNoteFab.visibility = View.VISIBLE
+                    binding.innerFab.isClickable = false
+                }
+            }
+
+        }
 
         return binding.root
     }
@@ -174,7 +237,20 @@ class NoteFragment : Fragment() {
 
     private fun setUpRecyclerView(spanCount: Int) {
         binding.rvNote.apply {
-            layoutManager = StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+            val whichView = sharedPreferencesView.getString("view", "0")
+            layoutManager = when (whichView) {
+                "list" -> {
+                    LinearLayoutManager(requireContext())
+                }
+
+                "grid" -> {
+                    StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+                }
+
+                else -> {
+                    StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+                }
+            }
             setHasFixedSize(true)
             rvNotesAdapter = RVNotesAdapter()
             rvNotesAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
@@ -198,6 +274,6 @@ class NoteFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         recyclerViewDisplay()
-        binding.innerFab.isClickable = true
+        binding.viewFab.isClickable = true
     }
 }

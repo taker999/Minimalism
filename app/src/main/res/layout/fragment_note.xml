@@ -37,6 +37,22 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <ImageButton
+                    android:id="@+id/popUpMenu"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:background="#00000000"
+                    android:clickable="true"
+                    android:contentDescription="Menu"
+                    android:focusable="true"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_view"
+                    app:layout_constraintBottom_toBottomOf="@+id/appTitle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/appTitle"
+                    app:tint="@color/black" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -117,25 +133,68 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/innerFab"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/addNoteParent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_edit"
-        android:backgroundTint="@color/add_note_bg"
-        app:elevation="0dp"
-        app:tint="@color/black"
-        android:layout_margin="20dp"
         android:layout_gravity="end|bottom"
-        android:contentDescription="Add Note"
+        android:layout_margin="16dp"
+        android:elevation="5dp"
+        android:animateLayoutChanges="true"
+        android:background="@drawable/rounded_search"
+        android:backgroundTint="@color/add_note_bg"
         android:clickable="true"
+        android:clipToPadding="false"
         android:focusable="true"
-        app:fabSize="normal"
-        app:borderWidth="0dp"
-        app:useCompatPadding="false"
-        tools:layout_conversion_absoluteHeight="56dp"
-        tools:layout_editor_absoluteY="659dp"
-        tools:layout_editor_absoluteX="331dp"
-        tools:layout_conversion_absoluteWidth="56dp" />
+        android:focusableInTouchMode="true">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/innerFab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:clickable="true"
+            android:contentDescription="Add Note"
+            android:enabled="false"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:src="@drawable/ic_edit"
+            app:backgroundTint="@color/add_note_bg"
+            app:borderWidth="0dp"
+            app:elevation="0dp"
+            app:fabSize="normal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/black"
+            app:useCompatPadding="false" />
+
+        <TextView
+            android:id="@+id/addNoteFab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:fontFamily="@font/google_sans_bold"
+            android:gravity="center"
+            android:text="Add Note"
+            android:paddingStart="0dp"
+            android:paddingEnd="17dp"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
+            android:textColor="@color/black"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/innerFab"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <View
+            android:id="@+id/viewFab"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
