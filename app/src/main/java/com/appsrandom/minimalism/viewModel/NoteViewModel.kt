@@ -30,8 +30,16 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         return repository.searchNote(query)
     }
 
-    fun getAllNotes(): LiveData<List<Note>> {
-        return repository.allNotes()
+    fun getAllNotesByOldest(): LiveData<List<Note>> {
+        return repository.allNotesByOldest()
+    }
+
+    fun getAllNotesByNewest(): LiveData<List<Note>> {
+        return repository.allNotesByNewest()
+    }
+
+    fun getAllNotesByColor(): LiveData<List<Note>> {
+        return repository.allNotesByColor()
     }
 
 }

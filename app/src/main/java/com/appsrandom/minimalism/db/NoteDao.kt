@@ -25,7 +25,13 @@ interface NoteDao {
     suspend fun deleteAllLocks()
 
     @Query("SELECT * FROM notes_table ORDER BY id ASC")
-    fun getAllNotes(): LiveData<List<Note>>
+    fun getAllNotesByOldest(): LiveData<List<Note>>
+
+    @Query("SELECT * FROM notes_table ORDER BY id DESC")
+    fun getAllNotesByNewest(): LiveData<List<Note>>
+
+    @Query("SELECT * FROM notes_table ORDER BY color ASC")
+    fun getAllNotesByColor(): LiveData<List<Note>>
 
     @Query("SELECT * FROM notes_table WHERE title LIKE :query OR content LIKE :query OR date LIKE :query ORDER BY id ASC")
     fun searchNote(query: String): LiveData<List<Note>>

@@ -5,7 +5,9 @@ import com.appsrandom.minimalism.models.Note
 
 class NoteRepository(private val db: NoteDatabase) {
 
-    fun allNotes() = db.getNoteDao().getAllNotes()
+    fun allNotesByOldest() = db.getNoteDao().getAllNotesByOldest()
+    fun allNotesByNewest() = db.getNoteDao().getAllNotesByNewest()
+    fun allNotesByColor() = db.getNoteDao().getAllNotesByColor()
     fun searchNote(query: String) = db.getNoteDao().searchNote(query)
 
     suspend fun insertNote(note: Note) {

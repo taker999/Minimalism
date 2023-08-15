@@ -15,10 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="15dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:padding="15dp">
 
         <TextView
             android:id="@+id/textView2"
@@ -26,7 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginStart="10dp"
-            android:text="View"
+            android:text="Sort by"
             android:textColor="@color/black"
             android:textSize="25sp"
             android:textStyle="bold"
@@ -36,24 +33,21 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/list"
+        android:id="@+id/newestSort"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="15dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+        android:padding="15dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:text="List"
+            android:text="Newest First"
             android:textStyle="bold"
             android:drawablePadding="10dp"
             android:textSize="20sp"
-            app:drawableStartCompat="@drawable/ic_list">
+            app:drawableStartCompat="@drawable/ic_sort_descending">
 
         </TextView>
 
@@ -61,24 +55,43 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/grid"
+        android:id="@+id/oldestSort"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="15dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/list">
+        android:padding="15dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:text="Grid"
+            android:text="Oldest First"
             android:textStyle="bold"
             android:drawablePadding="10dp"
             android:textSize="20sp"
-            app:drawableStartCompat="@drawable/ic_grid">
+            app:drawableStartCompat="@drawable/ic_sort_ascending">
+
+        </TextView>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/colorSort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="15dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="Color"
+            android:textStyle="bold"
+            android:drawablePadding="10dp"
+            android:textSize="20sp"
+            app:drawableStartCompat="@drawable/ic_baseline_color_lens_24">
 
         </TextView>
 

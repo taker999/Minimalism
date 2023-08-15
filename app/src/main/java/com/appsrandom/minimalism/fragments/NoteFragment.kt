@@ -38,6 +38,7 @@ class NoteFragment : Fragment() {
     private val noteViewModel: NoteViewModel by activityViewModels()
     private lateinit var rvNotesAdapter: RVNotesAdapter
     private lateinit var sharedPreferencesView: SharedPreferences
+    private lateinit var sharedPreferencesSort: SharedPreferences
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -52,6 +53,7 @@ class NoteFragment : Fragment() {
         binding = FragmentNoteBinding.inflate(layoutInflater, container, false)
 
         sharedPreferencesView = activity?.getSharedPreferences("sharedPrefsView", 0) as SharedPreferences
+        sharedPreferencesSort = activity?.getSharedPreferences("sharedPrefsSort", 0) as SharedPreferences
 
         binding.viewFab.setOnClickListener {
             binding.viewFab.isClickable = false
@@ -113,8 +115,78 @@ class NoteFragment : Fragment() {
         binding.rvNote.setOnTouchListener { _, _ ->
             requireView().hideKeyboard()
             binding.search.clearFocus()
-            (requireActivity() as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
+//            (requireActivity() as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
             return@setOnTouchListener false
+        }
+
+        binding.popUpMenuSort.setOnClickListener {
+            val bottomSheetDialog = BottomSheetDialog(requireContext(), R.style.BottomSheetTheme)
+            val sheetView = LayoutInflater.from(activity).inflate(R.layout.modal_bottom_sheet_sort, null)
+
+            val newest = sheetView.findViewById<LinearLayout>(R.id.newestSort)
+            val oldest = sheetView.findViewById<LinearLayout>(R.id.oldestSort)
+            val color = sheetView.findViewById<LinearLayout>(R.id.colorSort)
+
+            val editorSort = sharedPreferencesSort.edit()
+
+            when(sharedPreferencesSort.getString("sort", "0")) {
+                "oldest" -> {
+                    oldest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                    newest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    color.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                }
+
+                "newest" -> {
+                    oldest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    newest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                    color.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                }
+
+                "color" -> {
+                    oldest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    newest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    color.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                }
+
+                else -> {
+                    oldest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                    newest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    color.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                }
+            }
+
+            newest.setOnClickListener {
+
+                editorSort.putString("sort", "newest")
+                editorSort.apply()
+
+                recyclerViewDisplay()
+
+                bottomSheetDialog.dismiss()
+            }
+
+            oldest.setOnClickListener {
+
+                editorSort.putString("sort", "oldest")
+                editorSort.apply()
+
+                recyclerViewDisplay()
+
+                bottomSheetDialog.dismiss()
+            }
+
+            color.setOnClickListener {
+
+                editorSort.putString("sort", "color")
+                editorSort.apply()
+
+                recyclerViewDisplay()
+
+                bottomSheetDialog.dismiss()
+            }
+
+            bottomSheetDialog.setContentView(sheetView)
+            bottomSheetDialog.show()
         }
 
         binding.popUpMenu.setOnClickListener {
@@ -162,6 +234,12 @@ class NoteFragment : Fragment() {
         }
 
         binding.rvNote.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
+
+//            if ((activity as MainActivity).binding.bottomNavigationView.isVisible) {
+//                binding.rvNote.setPadding(0, 0, 0, 5)
+//            } else {
+//                binding.rvNote.setPadding(0, 0, 0, 80)
+//            }
 
             when {
                 scrollY > oldScrollY -> {
@@ -265,9 +343,35 @@ class NoteFragment : Fragment() {
     }
 
     fun observerDataChanges() {
-        noteViewModel.getAllNotes().observe(viewLifecycleOwner) {list->
-            binding.noteData.isVisible = list.isEmpty()
-            rvNotesAdapter.submitList(list)
+
+        when(sharedPreferencesSort.getString("sort", "0")) {
+            "oldest" -> {
+                noteViewModel.getAllNotesByOldest().observe(viewLifecycleOwner) {list->
+                    binding.noteData.isVisible = list.isEmpty()
+                    rvNotesAdapter.submitList(list)
+                }
+            }
+
+            "newest" -> {
+                noteViewModel.getAllNotesByNewest().observe(viewLifecycleOwner) {list->
+                    binding.noteData.isVisible = list.isEmpty()
+                    rvNotesAdapter.submitList(list)
+                }
+            }
+
+            "color" -> {
+                noteViewModel.getAllNotesByColor().observe(viewLifecycleOwner) {list->
+                    binding.noteData.isVisible = list.isEmpty()
+                    rvNotesAdapter.submitList(list)
+                }
+            }
+
+            else -> {
+                noteViewModel.getAllNotesByOldest().observe(viewLifecycleOwner) {list->
+                    binding.noteData.isVisible = list.isEmpty()
+                    rvNotesAdapter.submitList(list)
+                }
+            }
         }
     }
 
