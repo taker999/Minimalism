@@ -15,20 +15,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="15dp">
+        android:paddingVertical="15dp">
 
         <TextView
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginStart="10dp"
+            android:drawablePadding="10dp"
             android:text="Sort by"
             android:textColor="@color/black"
             android:textSize="25sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:drawableStartCompat="@drawable/ic_sort" />
 
     </LinearLayout>
 
@@ -37,7 +38,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="15dp">
+        android:paddingVertical="15dp"
+        android:paddingHorizontal="25dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -59,7 +61,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="15dp">
+        android:paddingVertical="15dp"
+        android:paddingHorizontal="25dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -81,7 +84,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="15dp">
+        android:paddingVertical="15dp"
+        android:paddingHorizontal="25dp">
 
         <TextView
             android:layout_width="wrap_content"

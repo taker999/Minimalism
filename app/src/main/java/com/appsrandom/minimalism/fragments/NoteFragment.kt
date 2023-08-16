@@ -99,11 +99,11 @@ class NoteFragment : Fragment() {
 
         })
 
-        binding.search.setOnFocusChangeListener { _, hasFocus ->
+//        binding.search.setOnFocusChangeListener { _, hasFocus ->
 //            if (hasFocus) {
-                (requireActivity() as MainActivity).binding.bottomNavigationView.isVisible = !hasFocus
+//                (requireActivity() as MainActivity).binding.bottomNavigationView.isVisible = !hasFocus
 //            }
-        }
+//        }
 
         binding.search.setOnEditorActionListener { v, actionID, _ ->
             if (actionID == EditorInfo.IME_ACTION_SEARCH) {

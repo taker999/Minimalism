@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.appsrandom.minimalism.activities.CreatePasswordActivity
+import com.appsrandom.minimalism.activities.FeedbackActivity
 import com.appsrandom.minimalism.activities.InputPasswordActivity
 import com.appsrandom.minimalism.activities.MainActivity
 import com.appsrandom.minimalism.activities.PrivacyAndPolicyActivity
@@ -157,6 +158,10 @@ class SettingsFragment : Fragment() {
                 intent.putExtra("whichActivity", "ChangePassword")
                 startActivity(intent)
             }
+        }
+
+        binding.feedback.setOnClickListener {
+            startActivity(Intent(requireContext(), FeedbackActivity::class.java))
         }
 
         return binding.root

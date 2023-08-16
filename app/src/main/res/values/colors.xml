@@ -4,6 +4,8 @@
     <color name="fab_black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="hint_color">#06121F</color>
+
     <color name="colorPrimaryDark">#EAE0E0</color>
 
     <color name="bg">@color/background_material_light</color>
