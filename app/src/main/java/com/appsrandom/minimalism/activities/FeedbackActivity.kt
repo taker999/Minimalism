@@ -1,25 +1,15 @@
 package com.appsrandom.minimalism.activities
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.activity.result.ActivityResultCallback
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.appsrandom.minimalism.databinding.ActivityFeedbackBinding
-
-
-
+import com.r0adkll.slidr.Slidr
 
 
 class FeedbackActivity : AppCompatActivity() {
@@ -42,6 +32,8 @@ class FeedbackActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityFeedbackBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        Slidr.attach(this)
 
         binding.backButton.setOnClickListener {
             finish()
@@ -107,7 +99,6 @@ class FeedbackActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please write about your problem...", Toast.LENGTH_SHORT).show()
             } else {
                 if (imageUri != null) {
-                    Log.d("ddd", imageUri.toString())
                     mailWithImage(imageUri as Uri, listOf("appsrandom6@gmail.com"), title, body)
                 } else {
                     mailWithText(listOf("appsrandom6@gmail.com"), title, body)
@@ -129,13 +120,13 @@ class FeedbackActivity : AppCompatActivity() {
         pickImageLauncher.launch(intent)
     }
 
-    private fun requestStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 1)
-        } else {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 1)
-        }
-    }
+//    private fun requestStoragePermission() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 1)
+//        } else {
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 1)
+//        }
+//    }
 
     private fun mailWithText(emailReceiver: List<String>, title: String, message: String) {
         val email = Intent(Intent.ACTION_SEND)
@@ -143,7 +134,7 @@ class FeedbackActivity : AppCompatActivity() {
         email.putExtra(Intent.EXTRA_EMAIL, emailReceiver.toTypedArray())
         email.putExtra(Intent.EXTRA_SUBJECT, title)
         email.putExtra(Intent.EXTRA_TEXT, message)
-        startActivity(Intent.createChooser(email, "choose..."))
+        startActivity(Intent.createChooser(email, "choose mail app..."))
     }
 
     private fun mailWithImage(uri: Uri, emailReceiver: List<String>, title: String, message: String) {
@@ -153,6 +144,6 @@ class FeedbackActivity : AppCompatActivity() {
         email.putExtra(Intent.EXTRA_SUBJECT, title)
         email.putExtra(Intent.EXTRA_TEXT, message)
         email.putExtra(Intent.EXTRA_STREAM, uri)
-        startActivity(Intent.createChooser(email, "choose..."))
+        startActivity(Intent.createChooser(email, "choose mail app..."))
     }
 }

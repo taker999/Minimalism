@@ -243,18 +243,18 @@ class NoteFragment : Fragment() {
 
             when {
                 scrollY > oldScrollY -> {
-                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.GONE
+//                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.GONE
                     binding.addNoteFab.visibility = View.GONE
                     binding.innerFab.isClickable = true
                 }
 
                 scrollX == scrollY -> {
-                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
+//                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
                     binding.addNoteFab.visibility = View.VISIBLE
                     binding.innerFab.isClickable = false
                 }
                 else -> {
-                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
+//                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
                     binding.addNoteFab.visibility = View.VISIBLE
                     binding.innerFab.isClickable = false
                 }
