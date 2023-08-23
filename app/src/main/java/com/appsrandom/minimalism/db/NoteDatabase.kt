@@ -6,10 +6,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.models.Note
 
 
-@Database(entities = [Note::class], version = 2, exportSchema = false)
+@Database(entities = [Note::class, Folder::class], version = 2, exportSchema = false)
 abstract class NoteDatabase: RoomDatabase() {
 
     abstract fun getNoteDao(): NoteDao

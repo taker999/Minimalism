@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.models.Note
 
 @Dao
@@ -14,6 +15,9 @@ interface NoteDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertNote(note: Note)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertFolder(folder: Folder)
 
     @Delete
     suspend fun deleteNote(note: Note)
@@ -35,5 +39,11 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes_table WHERE title LIKE :query OR content LIKE :query OR date LIKE :query ORDER BY id ASC")
     fun searchNote(query: String): LiveData<List<Note>>
+
+    @Query("SELECT * FROM folders_table WHERE ref_folder = :query ORDER BY id DESC")
+    fun getAllFolders(query: String): LiveData<List<Folder>>
+
+    @Query("SELECT * FROM notes_table WHERE folder_name = :query")
+    fun getAllNotes(query: String): LiveData<List<Note>>
 
 }

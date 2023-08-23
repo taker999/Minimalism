@@ -1,6 +1,7 @@
 package com.appsrandom.minimalism.repository
 
 import com.appsrandom.minimalism.db.NoteDatabase
+import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.models.Note
 
 class NoteRepository(private val db: NoteDatabase) {
@@ -8,10 +9,17 @@ class NoteRepository(private val db: NoteDatabase) {
     fun allNotesByOldest() = db.getNoteDao().getAllNotesByOldest()
     fun allNotesByNewest() = db.getNoteDao().getAllNotesByNewest()
     fun allNotesByColor() = db.getNoteDao().getAllNotesByColor()
+
+    fun getAllFolders(query: String) = db.getNoteDao().getAllFolders(query)
+    fun getAllNotes(query: String) = db.getNoteDao().getAllNotes(query)
     fun searchNote(query: String) = db.getNoteDao().searchNote(query)
 
     suspend fun insertNote(note: Note) {
         db.getNoteDao().insertNote(note)
+    }
+
+    suspend fun insertFolder(folder: Folder) {
+        db.getNoteDao().insertFolder(folder)
     }
 
     suspend fun deleteNote(note: Note) {

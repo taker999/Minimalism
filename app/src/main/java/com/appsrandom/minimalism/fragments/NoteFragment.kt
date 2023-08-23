@@ -1,16 +1,26 @@
 package com.appsrandom.minimalism.fragments
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.PopupMenu
+import android.widget.PopupWindow
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -21,15 +31,17 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.appsrandom.minimalism.R
 import com.appsrandom.minimalism.activities.CreateOrEditNoteActivity
-import com.appsrandom.minimalism.activities.MainActivity
+import com.appsrandom.minimalism.adapters.RVFoldersAdapter
 import com.appsrandom.minimalism.adapters.RVNotesAdapter
 import com.appsrandom.minimalism.databinding.FragmentNoteBinding
+import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.utils.SwipeToDelete
 import com.appsrandom.minimalism.utils.hideKeyboard
 import com.appsrandom.minimalism.viewModel.NoteViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
 import java.util.concurrent.TimeUnit
 
 class NoteFragment : Fragment() {
@@ -37,6 +49,7 @@ class NoteFragment : Fragment() {
     private lateinit var binding: FragmentNoteBinding
     private val noteViewModel: NoteViewModel by activityViewModels()
     private lateinit var rvNotesAdapter: RVNotesAdapter
+    private lateinit var rvFoldersAdapter: RVFoldersAdapter
     private lateinit var sharedPreferencesView: SharedPreferences
     private lateinit var sharedPreferencesSort: SharedPreferences
 
@@ -190,47 +203,7 @@ class NoteFragment : Fragment() {
         }
 
         binding.popUpMenu.setOnClickListener {
-            val bottomSheetDialog = BottomSheetDialog(requireContext(), R.style.BottomSheetTheme)
-            val sheetView = LayoutInflater.from(activity).inflate(R.layout.modal_bottom_sheet, null)
-
-            val editorView = sharedPreferencesView.edit()
-
-            val listLayout = sheetView.findViewById<LinearLayout>(R.id.list)
-            val gridLayout = sheetView.findViewById<LinearLayout>(R.id.grid)
-
-            when(sharedPreferencesView.getString("view", "0")) {
-                "list" -> {
-                    listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
-                    gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-                }
-                "grid" -> {
-                    gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
-                    listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-                }
-                else -> {
-                    gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
-                    listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-                }
-            }
-
-            listLayout.setOnClickListener {
-                editorView?.putString("view", "list")
-                editorView?.apply()
-                recyclerViewDisplay()
-
-                bottomSheetDialog.dismiss()
-            }
-
-            gridLayout.setOnClickListener {
-                editorView?.putString("view", "grid")
-                editorView?.apply()
-                recyclerViewDisplay()
-
-                bottomSheetDialog.dismiss()
-            }
-
-            bottomSheetDialog.setContentView(sheetView)
-            bottomSheetDialog.show()
+            showMenu()
         }
 
         binding.rvNote.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
@@ -263,6 +236,117 @@ class NoteFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    private fun showMenu() {
+        val popupMenu = PopupMenu(requireContext(), binding.popUpMenu)
+        val inflater: MenuInflater = popupMenu.menuInflater
+        inflater.inflate(R.menu.folder_view_items, popupMenu.menu)
+
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when(menuItem.itemId){
+                R.id.createFolder -> {
+                    showPopupWindow(requireActivity())
+                }
+                R.id.view -> {
+                    setNotesView()
+                }
+            }
+            true
+        }
+        binding.popUpMenu.setOnClickListener {
+            try {
+                val popUp = PopupMenu::class.java.getDeclaredField("mPopup")
+                popUp.isAccessible = true
+                val menu = popUp.get(popupMenu)
+                menu.javaClass
+                    .getDeclaredMethod("setForceShowIcon", Boolean::class.java)
+                    .invoke(menu, true)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                popupMenu.show()
+            }
+        }
+    }
+
+    private fun setNotesView() {
+        val bottomSheetDialog = BottomSheetDialog(requireContext(), R.style.BottomSheetTheme)
+        val sheetView = LayoutInflater.from(activity).inflate(R.layout.modal_bottom_sheet, null)
+
+        val editorView = sharedPreferencesView.edit()
+
+        val listLayout = sheetView.findViewById<LinearLayout>(R.id.list)
+        val gridLayout = sheetView.findViewById<LinearLayout>(R.id.grid)
+
+        when(sharedPreferencesView.getString("view", "0")) {
+            "list" -> {
+                listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+            }
+            "grid" -> {
+                gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+            }
+            else -> {
+                gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+            }
+        }
+
+        listLayout.setOnClickListener {
+            editorView?.putString("view", "list")
+            editorView?.apply()
+            recyclerViewDisplay()
+
+            bottomSheetDialog.dismiss()
+        }
+
+        gridLayout.setOnClickListener {
+            editorView?.putString("view", "grid")
+            editorView?.apply()
+            recyclerViewDisplay()
+
+            bottomSheetDialog.dismiss()
+        }
+
+        bottomSheetDialog.setContentView(sheetView)
+        bottomSheetDialog.show()
+    }
+
+    private fun showPopupWindow(activity: Activity) {
+
+        val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.popup_create_folder, null)
+
+        val popupWindow = PopupWindow(
+            view,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+
+        // If you want to dismiss the popup window when clicking outside it
+        popupWindow.isOutsideTouchable = true
+        popupWindow.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        // Show the popup window at the center of the screen
+        popupWindow.showAtLocation(activity.findViewById(android.R.id.content), Gravity.CENTER, 0, 0)
+
+        // Dismiss the popup window when the Dismiss button is clicked
+        val cancelBtn = view.findViewById<Button>(R.id.cancelBtnFolder)
+        cancelBtn.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        val okBtn = view.findViewById<Button>(R.id.addBtn)
+        okBtn.setOnClickListener {
+            val folderName = view.findViewById<TextInputEditText>(R.id.folderName).text.toString()
+            if (folderName.isNotBlank()) {
+                noteViewModel.insertFolder(Folder(folderName, -1))
+                popupWindow.dismiss()
+            }
+        }
     }
 
     private fun swipeToDelete(rvNote: RecyclerView) {
@@ -307,9 +391,35 @@ class NoteFragment : Fragment() {
     }
 
     private fun recyclerViewDisplay() {
+        Toast.makeText(requireContext(), "sg", Toast.LENGTH_SHORT).show()
         when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> setUpRecyclerView(2)
-            Configuration.ORIENTATION_LANDSCAPE -> setUpRecyclerView(3)
+            Configuration.ORIENTATION_PORTRAIT -> {
+                setUpRecyclerView(2)
+                setUpFolderRecyclerView(3)
+            }
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                setUpRecyclerView(3)
+                setUpFolderRecyclerView(6)
+            }
+        }
+    }
+
+    private fun setUpFolderRecyclerView(spanCount: Int) {
+        binding.rvFolder.apply {
+            layoutManager = StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+//            setHasFixedSize(true)
+            rvFoldersAdapter = RVFoldersAdapter()
+            rvNotesAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+            adapter = rvFoldersAdapter
+        }
+        observerFolderDataChanges()
+    }
+
+    private fun observerFolderDataChanges() {
+//        rvFoldersAdapter.submitList(listOf(Folder("g", -1)))
+        noteViewModel.getAllFolders("-null").observe(viewLifecycleOwner) {list->
+            if (binding.noteData.isVisible) binding.noData.visibility = View.GONE
+            rvFoldersAdapter.submitList(list)
         }
     }
 
@@ -329,7 +439,7 @@ class NoteFragment : Fragment() {
                     StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
                 }
             }
-            setHasFixedSize(true)
+//            setHasFixedSize(true)
             rvNotesAdapter = RVNotesAdapter()
             rvNotesAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             adapter = rvNotesAdapter

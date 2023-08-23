@@ -15,4 +15,17 @@ data class Note(
     @ColumnInfo(name = "date")val date: String,
     @ColumnInfo(name = "color")val color: Int = -1,
     @ColumnInfo(name = "lock")val isLocked: String? = "0",
-    @PrimaryKey(autoGenerate = true)var id: Int = 0): Serializable
+    @PrimaryKey(autoGenerate = true)var id: Int = 0,
+    @ColumnInfo(name = "folder_name")val folderName: String? = "-null"
+)
+
+@Keep
+@Entity(tableName = "folders_table")
+data class Folder(
+    @ColumnInfo(name = "folder_name")val folderName: String,
+    @ColumnInfo(name = "folder_color")val folderColor: Int = -1,
+    @PrimaryKey(autoGenerate = true)var id: Int = 0,
+    @ColumnInfo(name = "ref_folder")val refFolder: String? = "-null"
+)
+
+

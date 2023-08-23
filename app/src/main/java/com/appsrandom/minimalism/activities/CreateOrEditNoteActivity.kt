@@ -154,14 +154,23 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
     }
 
     private fun saveNote() {
+
+        val folderName = "folder"
+
         if (binding.etTitle.text.toString().isBlank() && binding.etNoteContent.text.toString().isBlank()) {
             finish()
         } else if (binding.etTitle.text.toString().isBlank()) {
             when (title) {
                 null -> {
-                    noteViewModel.insertNote(Note("", binding.etNoteContent.text.toString(), currentDate, color))
-                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-                    finish()
+                    if (folderName == null) {
+                        noteViewModel.insertNote(Note("", binding.etNoteContent.text.toString(), currentDate, color))
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                        finish()
+                    } else {
+                        noteViewModel.insertNote(Note("", binding.etNoteContent.text.toString(), currentDate, color, folderName))
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
                 }
                 else -> {
                     if (content != binding.etNoteContent.text.toString() || colorMatch != color) {

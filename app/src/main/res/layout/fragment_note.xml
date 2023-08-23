@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.NoteFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
-        android:background="@color/bg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/bg"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:liftOnScroll="true">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -27,12 +30,12 @@
                     android:id="@+id/appTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/app_name"
-                    android:textSize="30sp"
-                    android:textColor="@color/black"
-                    android:fontFamily="@font/google_sans_bold"
                     android:layout_marginStart="2dp"
                     android:layout_marginTop="15dp"
+                    android:fontFamily="@font/google_sans_bold"
+                    android:text="@string/app_name"
+                    android:textColor="@color/black"
+                    android:textSize="30sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -47,7 +50,7 @@
                     android:contentDescription="Menu"
                     android:focusable="true"
                     android:padding="9dp"
-                    android:src="@drawable/ic_view"
+                    android:src="@drawable/ic_menu"
                     app:layout_constraintBottom_toBottomOf="@+id/appTitle"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/appTitle"
@@ -72,32 +75,32 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginVertical="15dp"
+                    android:layout_marginEnd="15dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/appTitle"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:layout_marginVertical="15dp"
-                    android:layout_marginEnd="15dp">
+                    app:layout_constraintTop_toBottomOf="@id/appTitle">
 
                     <EditText
                         android:id="@+id/search"
                         android:layout_width="0dp"
                         android:layout_height="50dp"
+                        android:layout_weight="3"
                         android:background="@drawable/rounded_search"
                         android:drawableStart="@drawable/ic_round_search_24"
                         android:drawablePadding="5dp"
-                        android:imeOptions="actionSearch"
                         android:hint="Search here"
-                        android:textColor="@color/black"
-                        android:textColorHint="@color/hint_color"
-                        android:paddingHorizontal="18dp"
-                        android:paddingVertical="5dp"
-                        android:textSize="16sp"
+                        android:imeOptions="actionSearch"
                         android:importantForAutofill="no"
                         android:inputType="textFilter"
-                        android:layout_weight="3" />
+                        android:paddingHorizontal="18dp"
+                        android:paddingVertical="5dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/hint_color"
+                        android:textSize="16sp" />
 
                 </LinearLayout>
 
@@ -108,18 +111,45 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvNote"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingHorizontal="6dp"
-        android:layoutAnimation="@anim/layout_animation"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:paddingBottom="80dp"
-        android:clipToPadding="false"
-        android:scrollbarStyle="outsideOverlay"
-        android:transitionGroup="true"
-        tools:listitem="@layout/note_item" />
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appBarLayout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFolder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layoutAnimation="@anim/layout_animation"
+                android:nestedScrollingEnabled="false"
+                android:paddingHorizontal="6dp"
+                android:scrollbarStyle="outsideOverlay"
+                android:transitionGroup="true" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvNote"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layoutAnimation="@anim/layout_animation"
+                android:paddingHorizontal="6dp"
+                android:paddingBottom="80dp"
+                android:nestedScrollingEnabled="false"
+                android:scrollbarStyle="outsideOverlay"
+                android:transitionGroup="true" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/noteData"
@@ -143,8 +173,8 @@
             android:layout_marginTop="8dp"
             android:fontFamily="@font/google_sans_bold"
             android:text="Keep Your Life Organized"
-            android:textSize="25sp"
             android:textColor="@color/black"
+            android:textSize="25sp"
             app:layout_constraintEnd_toEndOf="@+id/noData"
             app:layout_constraintStart_toStartOf="@+id/noData"
             app:layout_constraintTop_toBottomOf="@+id/noData" />
@@ -157,14 +187,16 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
-        android:elevation="5dp"
         android:animateLayoutChanges="true"
         android:background="@drawable/rounded_search"
         android:backgroundTint="@color/add_note_bg"
         android:clickable="true"
         android:clipToPadding="false"
+        android:elevation="5dp"
         android:focusable="true"
-        android:focusableInTouchMode="true">
+        android:focusableInTouchMode="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/innerFab"
@@ -194,9 +226,9 @@
             android:layout_gravity="center_vertical"
             android:fontFamily="@font/google_sans_bold"
             android:gravity="center"
-            android:text="Add Note"
             android:paddingStart="0dp"
             android:paddingEnd="17dp"
+            android:text="Add Note"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
             android:textColor="@color/black"
             app:layout_constraintBottom_toBottomOf="parent"
