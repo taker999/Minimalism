@@ -214,19 +214,19 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
 
 
             val html = """<!DOCTYPE html>
-<html>
-<head>
-	<title></title>
-	<link rel="stylesheet" type="text/css" href="file:android_asset/CreatePdf.css">
-</head>
-<body>
-
-<h1 style="font-size: xx-large">$printTitle</h1>
-<p style="font-size: x-large">$printContent</p>
-
-</body>
-
-</html>"""
+            <html>
+            <head>
+                <title></title>
+                <link rel="stylesheet" type="text/css" href="file:android_asset/CreatePdf.css">
+            </head>
+            <body>
+            
+            <h1 style="font-size: xx-large">$printTitle</h1>
+            <p style="font-size: x-large">$printContent</p>
+            
+            </body>
+            
+            </html>"""
             binding.webView.loadDataWithBaseURL(null, html, "text/html", "utf-8", null)
 
             val printManager = this@CreateOrEditNoteActivity.getSystemService(PRINT_SERVICE) as PrintManager
@@ -256,7 +256,16 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
                     saveNote()
                 }
                 R.id.print -> {
-                    createPdf()
+                    if (binding.etTitle.text.toString().isBlank() && binding.etNoteContent.text.toString().isBlank()) {
+                        Toast.makeText(this, "Can't print empty note...", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val printTitle = binding.etTitle.text.toString().trim()
+                        val printContent = binding.etNoteContent.text.toString().trim()
+                        val intent = Intent(this, PrintActivity::class.java)
+                        intent.putExtra("printTitle", printTitle)
+                        intent.putExtra("printContent", printContent)
+                        startActivity(intent)
+                    }
                 }
                 R.id.share -> {
                     shareNote()

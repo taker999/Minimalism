@@ -103,7 +103,6 @@ class FeedbackActivity : AppCompatActivity() {
                 } else {
                     mailWithText(listOf("appsrandom6@gmail.com"), title, body)
                 }
-                finish()
             }
         }
 
