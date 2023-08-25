@@ -69,8 +69,8 @@ class PrintActivity : AppCompatActivity() {
             </head>
             <body>
             
-            <h1 style="font-size: xx-large">$p0</h1>
-            <p style="font-size: x-large">${binding.printContent.text}</p>
+            <h1 style="font-size: medium">$p0</h1>
+            <p style="font-size: small">${binding.printContent.text}</p>
             
             </body>
             
@@ -98,8 +98,8 @@ class PrintActivity : AppCompatActivity() {
             </head>
             <body>
             
-            <h1 style="font-size: xx-large">${binding.printTitle.text}</h1>
-            <p style="font-size: x-large">$p0</p>
+            <h1 style="font-size: medium">${binding.printTitle.text}</h1>
+            <p style="font-size: small">$p0</p>
             
             </body>
             
@@ -125,8 +125,8 @@ class PrintActivity : AppCompatActivity() {
             </head>
             <body>
             
-            <h1 style="font-size: xx-large">$printTitle</h1>
-            <p style="font-size: x-large">$printContent</p>
+            <h1 style="font-size: medium">$printTitle</h1>
+            <p style="font-size: small">$printContent</p>
             
             </body>
             
@@ -168,5 +168,10 @@ class PrintActivity : AppCompatActivity() {
                 adapter, PrintAttributes.Builder().build()
             )
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        showPrint()
     }
 }
