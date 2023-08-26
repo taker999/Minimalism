@@ -16,7 +16,7 @@ data class Note(
     @ColumnInfo(name = "color")val color: Int = -1,
     @ColumnInfo(name = "lock")val isLocked: String? = "0",
     @PrimaryKey(autoGenerate = true)var id: Int = 0,
-    @ColumnInfo(name = "folder_name")val folderName: String? = "-null"
+    @ColumnInfo(name = "folder_id")var folderId: Int = Int.MIN_VALUE
 )
 
 @Keep
@@ -25,7 +25,7 @@ data class Folder(
     @ColumnInfo(name = "folder_name")val folderName: String,
     @ColumnInfo(name = "folder_color")val folderColor: Int = -1,
     @PrimaryKey(autoGenerate = true)var id: Int = 0,
-    @ColumnInfo(name = "ref_folder")val refFolder: String? = "-null"
+    @ColumnInfo(name = "ref_folder_id")var refFolderId: Int = Int.MIN_VALUE
 )
 
 

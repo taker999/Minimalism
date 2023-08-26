@@ -39,12 +39,12 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         return repository.getAllNotes(query)
     }
 
-    fun getAllFolders(query: String): LiveData<List<Folder>> {
+    fun getAllFolders(query: Int): LiveData<List<Folder>> {
         return repository.getAllFolders(query)
     }
 
-    fun getAllNotesByOldest(): LiveData<List<Note>> {
-        return repository.allNotesByOldest()
+    fun getAllNotesByOldest(query: Int): LiveData<List<Note>> {
+        return repository.allNotesByOldest(query)
     }
 
     fun getAllNotesByNewest(): LiveData<List<Note>> {

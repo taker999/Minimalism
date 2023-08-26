@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.print.PrintAttributes
 import android.print.PrintDocumentAdapter
 import android.print.PrintManager
+import android.util.Log
 import android.view.MenuInflater
 import android.view.View
 import android.widget.PopupMenu
@@ -50,6 +51,7 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
     private var currentPosition: Int = -1
     private lateinit var popupMenu: PopupMenu
     private lateinit var sharedPreferencesPassword: SharedPreferences
+    private var folderId: Int = Int.MIN_VALUE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +69,8 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
         } else {
             "1"
         }
+
+        folderId = intent.getIntExtra("folderId", Int.MIN_VALUE)
 
         colorMatch = color
 
@@ -155,19 +159,19 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
 
     private fun saveNote() {
 
-        val folderName = "folder"
-
         if (binding.etTitle.text.toString().isBlank() && binding.etNoteContent.text.toString().isBlank()) {
             finish()
         } else if (binding.etTitle.text.toString().isBlank()) {
             when (title) {
                 null -> {
-                    if (folderName == null) {
+                    if (folderId == Int.MIN_VALUE) {
                         noteViewModel.insertNote(Note("", binding.etNoteContent.text.toString(), currentDate, color))
                         Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
-                        noteViewModel.insertNote(Note("", binding.etNoteContent.text.toString(), currentDate, color, folderName))
+                        val note = Note("", binding.etNoteContent.text.toString(), currentDate, color)
+                        note.folderId = folderId
+                        noteViewModel.insertNote(note)
                         Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                         finish()
                     }
@@ -183,9 +187,17 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
         } else if (binding.etNoteContent.text.toString().isBlank()) {
             when (title) {
                 null -> {
-                    noteViewModel.insertNote(Note(binding.etTitle.text.toString(), "", currentDate, color))
-                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-                    finish()
+                    if (folderId == Int.MIN_VALUE) {
+                        noteViewModel.insertNote(Note(binding.etTitle.text.toString(), "", currentDate, color))
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                        finish()
+                    } else {
+                        val note = Note(binding.etTitle.text.toString(), "", currentDate, color)
+                        note.folderId = folderId
+                        noteViewModel.insertNote(note)
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
                 }
                 else -> {
                     if (title != binding.etTitle.text.toString() || colorMatch != color){
@@ -198,9 +210,17 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
         } else {
             when (title) {
                 null -> {
-                    noteViewModel.insertNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color))
-                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-                    finish()
+                    if (folderId == Int.MIN_VALUE) {
+                        noteViewModel.insertNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color))
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                        finish()
+                    } else {
+                        val note = Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color)
+                        note.folderId = folderId
+                        noteViewModel.insertNote(note)
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
                 }
                 else -> {
                     if (title != binding.etTitle.text.toString() || content != binding.etNoteContent.text.toString() || colorMatch != color) {

@@ -21,6 +21,7 @@ import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import android.widget.Toast
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -42,6 +43,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.thebluealliance.spectrum.SpectrumPalette
 import java.util.concurrent.TimeUnit
 
 class NoteFragment : Fragment() {
@@ -52,6 +54,7 @@ class NoteFragment : Fragment() {
     private lateinit var rvFoldersAdapter: RVFoldersAdapter
     private lateinit var sharedPreferencesView: SharedPreferences
     private lateinit var sharedPreferencesSort: SharedPreferences
+    private var folderColor = -1
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -339,11 +342,21 @@ class NoteFragment : Fragment() {
             popupWindow.dismiss()
         }
 
+        val createFolderParentLayout = view.findViewById<LinearLayout>(R.id.createFolderParentLayout)
+        createFolderParentLayout.setBackgroundColor(folderColor)
+
+        val colorPickerFolder = view.findViewById<SpectrumPalette>(R.id.colorPickerFolder)
+        colorPickerFolder.setSelectedColor(folderColor)
+        colorPickerFolder.setOnColorSelectedListener {
+            folderColor = it
+            createFolderParentLayout.setBackgroundColor(folderColor)
+        }
+
         val okBtn = view.findViewById<Button>(R.id.addBtn)
         okBtn.setOnClickListener {
             val folderName = view.findViewById<TextInputEditText>(R.id.folderName).text.toString()
             if (folderName.isNotBlank()) {
-                noteViewModel.insertFolder(Folder(folderName, -1))
+                noteViewModel.insertFolder(Folder(folderName, folderColor))
                 popupWindow.dismiss()
             }
         }
@@ -391,7 +404,6 @@ class NoteFragment : Fragment() {
     }
 
     private fun recyclerViewDisplay() {
-        Toast.makeText(requireContext(), "sg", Toast.LENGTH_SHORT).show()
         when (resources.configuration.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
                 setUpRecyclerView(2)
@@ -417,7 +429,7 @@ class NoteFragment : Fragment() {
 
     private fun observerFolderDataChanges() {
 //        rvFoldersAdapter.submitList(listOf(Folder("g", -1)))
-        noteViewModel.getAllFolders("-null").observe(viewLifecycleOwner) {list->
+        noteViewModel.getAllFolders(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
             if (binding.noteData.isVisible) binding.noData.visibility = View.GONE
             rvFoldersAdapter.submitList(list)
         }
@@ -456,7 +468,7 @@ class NoteFragment : Fragment() {
 
         when(sharedPreferencesSort.getString("sort", "0")) {
             "oldest" -> {
-                noteViewModel.getAllNotesByOldest().observe(viewLifecycleOwner) {list->
+                noteViewModel.getAllNotesByOldest(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
                     binding.noteData.isVisible = list.isEmpty()
                     rvNotesAdapter.submitList(list)
                 }
@@ -477,7 +489,7 @@ class NoteFragment : Fragment() {
             }
 
             else -> {
-                noteViewModel.getAllNotesByOldest().observe(viewLifecycleOwner) {list->
+                noteViewModel.getAllNotesByOldest(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
                     binding.noteData.isVisible = list.isEmpty()
                     rvNotesAdapter.submitList(list)
                 }

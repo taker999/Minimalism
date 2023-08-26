@@ -28,8 +28,8 @@ interface NoteDao {
     @Query("UPDATE notes_table set lock=0")
     suspend fun deleteAllLocks()
 
-    @Query("SELECT * FROM notes_table ORDER BY id ASC")
-    fun getAllNotesByOldest(): LiveData<List<Note>>
+    @Query("SELECT * FROM notes_table WHERE folder_id = :query ORDER BY id ASC")
+    fun getAllNotesByOldest(query: Int): LiveData<List<Note>>
 
     @Query("SELECT * FROM notes_table ORDER BY id DESC")
     fun getAllNotesByNewest(): LiveData<List<Note>>
@@ -40,10 +40,10 @@ interface NoteDao {
     @Query("SELECT * FROM notes_table WHERE title LIKE :query OR content LIKE :query OR date LIKE :query ORDER BY id ASC")
     fun searchNote(query: String): LiveData<List<Note>>
 
-    @Query("SELECT * FROM folders_table WHERE ref_folder = :query ORDER BY id DESC")
-    fun getAllFolders(query: String): LiveData<List<Folder>>
+    @Query("SELECT * FROM folders_table WHERE ref_folder_id = :query ORDER BY id DESC")
+    fun getAllFolders(query: Int): LiveData<List<Folder>>
 
-    @Query("SELECT * FROM notes_table WHERE folder_name = :query")
+    @Query("SELECT * FROM notes_table WHERE folder_id = :query")
     fun getAllNotes(query: String): LiveData<List<Note>>
 
 }
