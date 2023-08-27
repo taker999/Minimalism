@@ -47,12 +47,12 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         return repository.allNotesByOldest(query)
     }
 
-    fun getAllNotesByNewest(): LiveData<List<Note>> {
-        return repository.allNotesByNewest()
+    fun getAllNotesByNewest(query: Int): LiveData<List<Note>> {
+        return repository.allNotesByNewest(query)
     }
 
-    fun getAllNotesByColor(): LiveData<List<Note>> {
-        return repository.allNotesByColor()
+    fun getAllNotesByColor(query: Int): LiveData<List<Note>> {
+        return repository.allNotesByColor(query)
     }
 
 }

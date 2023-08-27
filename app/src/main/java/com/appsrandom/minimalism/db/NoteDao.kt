@@ -31,11 +31,11 @@ interface NoteDao {
     @Query("SELECT * FROM notes_table WHERE folder_id = :query ORDER BY id ASC")
     fun getAllNotesByOldest(query: Int): LiveData<List<Note>>
 
-    @Query("SELECT * FROM notes_table ORDER BY id DESC")
-    fun getAllNotesByNewest(): LiveData<List<Note>>
+    @Query("SELECT * FROM notes_table WHERE folder_id = :query ORDER BY id DESC")
+    fun getAllNotesByNewest(query: Int): LiveData<List<Note>>
 
-    @Query("SELECT * FROM notes_table ORDER BY color ASC")
-    fun getAllNotesByColor(): LiveData<List<Note>>
+    @Query("SELECT * FROM notes_table WHERE folder_id = :query ORDER BY color ASC")
+    fun getAllNotesByColor(query: Int): LiveData<List<Note>>
 
     @Query("SELECT * FROM notes_table WHERE title LIKE :query OR content LIKE :query OR date LIKE :query ORDER BY id ASC")
     fun searchNote(query: String): LiveData<List<Note>>

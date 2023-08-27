@@ -61,10 +61,16 @@ class FolderActivity : AppCompatActivity() {
     private var folderColor: Int = -1
     private lateinit var sharedPreferencesView: SharedPreferences
     private lateinit var sharedPreferencesSort: SharedPreferences
+    private lateinit var popupMenu: PopupMenu
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFolderBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        popupMenu = PopupMenu(this, binding.popUpMenu)
+        val inflater: MenuInflater = popupMenu.menuInflater
+        inflater.inflate(R.menu.folder_view_items, popupMenu.menu)
+        showMenu()
 
         folderId = intent.getIntExtra("folderId", Int.MIN_VALUE)
         folderName = intent.getStringExtra("folderName").toString()
@@ -82,12 +88,14 @@ class FolderActivity : AppCompatActivity() {
         recyclerViewDisplay()
 
         binding.viewFab.setOnClickListener {
+            binding.viewFab.isClickable = false
             val intent = Intent(this, CreateOrEditNoteActivity::class.java)
             intent.putExtra("folderId", folderId)
             startActivity(intent)
         }
 
         binding.innerFab.setOnClickListener {
+            binding.viewFab.isClickable = false
             val intent = Intent(this, CreateOrEditNoteActivity::class.java)
             intent.putExtra("folderId", folderId)
             startActivity(intent)
@@ -206,8 +214,33 @@ class FolderActivity : AppCompatActivity() {
             bottomSheetDialog.show()
         }
 
-        binding.popUpMenu.setOnClickListener {
-            showMenu()
+        binding.rvBoth.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
+
+//            if ((activity as MainActivity).binding.bottomNavigationView.isVisible) {
+//                binding.rvNote.setPadding(0, 0, 0, 5)
+//            } else {
+//                binding.rvNote.setPadding(0, 0, 0, 80)
+//            }
+
+            when {
+                scrollY > oldScrollY -> {
+//                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.GONE
+                    binding.addNoteFab.visibility = View.GONE
+                    binding.innerFab.isClickable = true
+                }
+
+                scrollX == scrollY -> {
+//                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
+                    binding.addNoteFab.visibility = View.VISIBLE
+                    binding.innerFab.isClickable = false
+                }
+                else -> {
+//                    (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
+                    binding.addNoteFab.visibility = View.VISIBLE
+                    binding.innerFab.isClickable = false
+                }
+            }
+
         }
     }
 
@@ -256,9 +289,6 @@ class FolderActivity : AppCompatActivity() {
     }
 
     private fun showMenu() {
-        val popupMenu = PopupMenu(this, binding.popUpMenu)
-        val inflater: MenuInflater = popupMenu.menuInflater
-        inflater.inflate(R.menu.folder_view_items, popupMenu.menu)
 
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when(menuItem.itemId){
@@ -383,7 +413,7 @@ class FolderActivity : AppCompatActivity() {
             }
             Configuration.ORIENTATION_LANDSCAPE -> {
                 setUpRecyclerView(3)
-                setUpFolderRecyclerView(6)
+                setUpFolderRecyclerView(4)
             }
         }
     }
@@ -402,18 +432,32 @@ class FolderActivity : AppCompatActivity() {
     private fun observerFolderDataChanges() {
 //        rvFoldersAdapter.submitList(listOf(Folder("g", -1)))
         noteViewModel.getAllFolders(folderId).observe(this) {list->
-            if (binding.noteData.isVisible) binding.noData.visibility = View.GONE
+            if (binding.noteData.isVisible) binding.noteData.visibility = View.GONE
             rvFoldersAdapter.submitList(list)
         }
     }
 
     private fun setUpRecyclerView(spanCount: Int) {
         binding.rvNote.apply {
-            layoutManager = StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+            val whichView = sharedPreferencesView.getString("view", "0")
+            layoutManager = when (whichView) {
+                "list" -> {
+                    LinearLayoutManager(this@FolderActivity)
+                }
+
+                "grid" -> {
+                    StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+                }
+
+                else -> {
+                    StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
+                }
+            }
 //            setHasFixedSize(true)
             rvNotesAdapter = RVNotesAdapter()
             rvNotesAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             adapter = rvNotesAdapter
+            postponeEnterTransition()
             viewTreeObserver.addOnPreDrawListener {
                 startPostponedEnterTransition()
                 true
@@ -423,9 +467,40 @@ class FolderActivity : AppCompatActivity() {
     }
 
     private fun observerDataChanges() {
-        noteViewModel.getAllNotesByOldest(folderId).observe(this) {list->
-            binding.noData.isVisible = list.isEmpty()
-            rvNotesAdapter.submitList(list)
+        when(sharedPreferencesSort.getString("sort", "0")) {
+            "oldest" -> {
+                noteViewModel.getAllNotesByOldest(folderId).observe(this) {list->
+                    binding.noteData.isVisible = list.isEmpty()
+                    rvNotesAdapter.submitList(list)
+                }
+            }
+
+            "newest" -> {
+                noteViewModel.getAllNotesByNewest(folderId).observe(this) {list->
+                    binding.noteData.isVisible = list.isEmpty()
+                    rvNotesAdapter.submitList(list)
+                }
+            }
+
+            "color" -> {
+                noteViewModel.getAllNotesByColor(folderId).observe(this) {list->
+                    binding.noteData.isVisible = list.isEmpty()
+                    rvNotesAdapter.submitList(list)
+                }
+            }
+
+            else -> {
+                noteViewModel.getAllNotesByOldest(folderId).observe(this) {list->
+                    binding.noteData.isVisible = list.isEmpty()
+                    rvNotesAdapter.submitList(list)
+                }
+            }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        recyclerViewDisplay()
+        binding.viewFab.isClickable = true
     }
 }

@@ -20,8 +20,6 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.PopupWindow
-import android.widget.Toast
-import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -32,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.appsrandom.minimalism.R
 import com.appsrandom.minimalism.activities.CreateOrEditNoteActivity
+import com.appsrandom.minimalism.activities.MainActivity
 import com.appsrandom.minimalism.adapters.RVFoldersAdapter
 import com.appsrandom.minimalism.adapters.RVNotesAdapter
 import com.appsrandom.minimalism.databinding.FragmentNoteBinding
@@ -46,6 +45,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.thebluealliance.spectrum.SpectrumPalette
 import java.util.concurrent.TimeUnit
 
+
 class NoteFragment : Fragment() {
 
     private lateinit var binding: FragmentNoteBinding
@@ -55,11 +55,14 @@ class NoteFragment : Fragment() {
     private lateinit var sharedPreferencesView: SharedPreferences
     private lateinit var sharedPreferencesSort: SharedPreferences
     private var folderColor = -1
+    private lateinit var popupMenu: PopupMenu
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requireView().hideKeyboard()
     }
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,6 +70,11 @@ class NoteFragment : Fragment() {
     ): View {
         // Inflate the layout for this fragment
         binding = FragmentNoteBinding.inflate(layoutInflater, container, false)
+
+        popupMenu = PopupMenu(requireContext(), binding.popUpMenu)
+        val popupInflater: MenuInflater = popupMenu.menuInflater
+        popupInflater.inflate(R.menu.folder_view_items, popupMenu.menu)
+        showMenu()
 
         sharedPreferencesView = activity?.getSharedPreferences("sharedPrefsView", 0) as SharedPreferences
         sharedPreferencesSort = activity?.getSharedPreferences("sharedPrefsSort", 0) as SharedPreferences
@@ -88,6 +96,14 @@ class NoteFragment : Fragment() {
         swipeToDelete(binding.rvNote)
 
         //implementing search
+
+        binding.search.setOnClickListener {
+            val ft = parentFragmentManager.beginTransaction()
+            ft.replace(R.id.container, SearchFragment())
+            ft.addToBackStack(null)
+            ft.commit()
+        }
+
         binding.search.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                 binding.noteData.visibility = View.GONE
@@ -205,11 +221,7 @@ class NoteFragment : Fragment() {
             bottomSheetDialog.show()
         }
 
-        binding.popUpMenu.setOnClickListener {
-            showMenu()
-        }
-
-        binding.rvNote.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
+        binding.rvBoth.setOnScrollChangeListener { _, scrollX, scrollY, _, oldScrollY ->
 
 //            if ((activity as MainActivity).binding.bottomNavigationView.isVisible) {
 //                binding.rvNote.setPadding(0, 0, 0, 5)
@@ -242,9 +254,6 @@ class NoteFragment : Fragment() {
     }
 
     private fun showMenu() {
-        val popupMenu = PopupMenu(requireContext(), binding.popUpMenu)
-        val inflater: MenuInflater = popupMenu.menuInflater
-        inflater.inflate(R.menu.folder_view_items, popupMenu.menu)
 
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when(menuItem.itemId){
@@ -430,7 +439,7 @@ class NoteFragment : Fragment() {
     private fun observerFolderDataChanges() {
 //        rvFoldersAdapter.submitList(listOf(Folder("g", -1)))
         noteViewModel.getAllFolders(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
-            if (binding.noteData.isVisible) binding.noData.visibility = View.GONE
+            if (binding.noteData.isVisible) binding.noteData.visibility = View.GONE
             rvFoldersAdapter.submitList(list)
         }
     }
@@ -475,14 +484,14 @@ class NoteFragment : Fragment() {
             }
 
             "newest" -> {
-                noteViewModel.getAllNotesByNewest().observe(viewLifecycleOwner) {list->
+                noteViewModel.getAllNotesByNewest(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
                     binding.noteData.isVisible = list.isEmpty()
                     rvNotesAdapter.submitList(list)
                 }
             }
 
             "color" -> {
-                noteViewModel.getAllNotesByColor().observe(viewLifecycleOwner) {list->
+                noteViewModel.getAllNotesByColor(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
                     binding.noteData.isVisible = list.isEmpty()
                     rvNotesAdapter.submitList(list)
                 }
@@ -500,6 +509,7 @@ class NoteFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         recyclerViewDisplay()
+        (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
         binding.viewFab.isClickable = true
     }
 }

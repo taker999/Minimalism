@@ -284,6 +284,9 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
                 R.id.save -> {
                     saveNote()
                 }
+                R.id.cancel -> {
+                    finish()
+                }
                 R.id.print -> {
                     createPdf()
                 }
