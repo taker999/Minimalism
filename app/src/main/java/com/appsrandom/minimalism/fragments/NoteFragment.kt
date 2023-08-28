@@ -98,57 +98,14 @@ class NoteFragment : Fragment() {
         //implementing search
 
         binding.search.setOnClickListener {
+            val searchFragment = SearchFragment()
+            val bundle = Bundle()
+            bundle.putString("noteFragment", "NoteFragment")
+            searchFragment.arguments = bundle
             val ft = parentFragmentManager.beginTransaction()
-            ft.replace(R.id.container, SearchFragment())
+            ft.replace(R.id.container, searchFragment)
             ft.addToBackStack(null)
             ft.commit()
-        }
-
-        binding.search.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                binding.noteData.visibility = View.GONE
-            }
-
-            override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (s.toString().isNotEmpty()) {
-                    val text = s.toString()
-                    val query = "%$text%"
-                    if (query.isNotEmpty()) {
-                        noteViewModel.searchNote(query).observe(viewLifecycleOwner) {
-                            rvNotesAdapter.submitList(it)
-                        }
-                    } else {
-                        observerDataChanges()
-                    }
-                } else {
-                    observerDataChanges()
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-
-            }
-
-        })
-
-//        binding.search.setOnFocusChangeListener { _, hasFocus ->
-//            if (hasFocus) {
-//                (requireActivity() as MainActivity).binding.bottomNavigationView.isVisible = !hasFocus
-//            }
-//        }
-
-        binding.search.setOnEditorActionListener { v, actionID, _ ->
-            if (actionID == EditorInfo.IME_ACTION_SEARCH) {
-                v.clearFocus()
-            }
-            return@setOnEditorActionListener true
-        }
-
-        binding.rvNote.setOnTouchListener { _, _ ->
-            requireView().hideKeyboard()
-            binding.search.clearFocus()
-//            (requireActivity() as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
-            return@setOnTouchListener false
         }
 
         binding.popUpMenuSort.setOnClickListener {
@@ -378,10 +335,9 @@ class NoteFragment : Fragment() {
                 val note = rvNotesAdapter.currentList[position]
                 var actionBtnTapped = false
                 noteViewModel.deleteNote(note)
-                binding.search.clearFocus()
-                if (binding.search.text.toString().isEmpty()) {
-                    observerDataChanges()
-                }
+//                if (binding.search.text.toString().isEmpty()) {
+//                    observerDataChanges()
+//                }
                 val snackBar = Snackbar.make(requireView(), "Note Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                     override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                         super.onDismissed(transientBottomBar, event)

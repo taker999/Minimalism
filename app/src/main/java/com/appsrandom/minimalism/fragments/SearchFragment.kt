@@ -17,6 +17,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.appsrandom.minimalism.activities.FolderActivity
 import com.appsrandom.minimalism.activities.MainActivity
 import com.appsrandom.minimalism.adapters.RVNotesAdapter
 import com.appsrandom.minimalism.databinding.FragmentSearchBinding
@@ -29,6 +30,7 @@ class SearchFragment : Fragment() {
     private val noteViewModel: NoteViewModel by activityViewModels()
     private lateinit var rvNotesAdapter: RVNotesAdapter
     private lateinit var sharedPreferencesView: SharedPreferences
+    private var bundle: Bundle? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,7 +39,13 @@ class SearchFragment : Fragment() {
         // Inflate the layout for this fragment
         binding = FragmentSearchBinding.inflate(layoutInflater, container, false)
 
-        (activity as MainActivity).binding.bottomNavigationView.visibility = View.GONE
+        bundle = arguments
+        if (bundle != null) {
+            (activity as MainActivity).binding.bottomNavigationView.visibility = View.GONE
+        } else {
+            (activity as FolderActivity).binding.searchContainerParent.visibility = View.VISIBLE
+            (activity as FolderActivity).binding.addNoteParent.visibility = View.GONE
+        }
 
         sharedPreferencesView = activity?.getSharedPreferences("sharedPrefsView", 0) as SharedPreferences
 
@@ -115,5 +123,13 @@ class SearchFragment : Fragment() {
             }
         }
 //        observerDataChanges()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        if (bundle == null) {
+            (activity as FolderActivity).binding.searchContainerParent.visibility = View.GONE
+            (activity as FolderActivity).binding.addNoteParent.visibility = View.VISIBLE
+        }
     }
 }

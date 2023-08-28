@@ -37,6 +37,7 @@ import com.appsrandom.minimalism.adapters.RVFoldersAdapter
 import com.appsrandom.minimalism.adapters.RVNotesAdapter
 import com.appsrandom.minimalism.databinding.ActivityFolderBinding
 import com.appsrandom.minimalism.db.NoteDatabase
+import com.appsrandom.minimalism.fragments.SearchFragment
 import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.repository.NoteRepository
 import com.appsrandom.minimalism.utils.SwipeToDelete
@@ -47,12 +48,13 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.r0adkll.slidr.Slidr
 import com.thebluealliance.spectrum.SpectrumPalette
 import java.util.concurrent.TimeUnit
 
 class FolderActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityFolderBinding
+    lateinit var binding: ActivityFolderBinding
     private lateinit var rvNotesAdapter: RVNotesAdapter
     private lateinit var rvFoldersAdapter: RVFoldersAdapter
     private lateinit var noteViewModel: NoteViewModel
@@ -66,6 +68,8 @@ class FolderActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityFolderBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        Slidr.attach(this)
 
         popupMenu = PopupMenu(this, binding.popUpMenu)
         val inflater: MenuInflater = popupMenu.menuInflater
@@ -103,45 +107,11 @@ class FolderActivity : AppCompatActivity() {
 
         swipeToDelete(binding.rvNote)
 
-        binding.search.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                binding.noteData.visibility = View.GONE
-            }
-
-            override fun onTextChanged(s: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (s.toString().isNotEmpty()) {
-                    val text = s.toString()
-                    val query = "%$text%"
-                    if (query.isNotEmpty()) {
-                        noteViewModel.searchNote(query).observe(this@FolderActivity) {
-                            rvNotesAdapter.submitList(it)
-                        }
-                    } else {
-                        observerDataChanges()
-                    }
-                } else {
-                    observerDataChanges()
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-
-            }
-
-        })
-
-        binding.search.setOnEditorActionListener { v, actionID, _ ->
-            if (actionID == EditorInfo.IME_ACTION_SEARCH) {
-                v.clearFocus()
-            }
-            return@setOnEditorActionListener true
-        }
-
-        binding.rvNote.setOnTouchListener { _, _ ->
-            View(this).hideKeyboard()
-            binding.search.clearFocus()
-//            (requireActivity() as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
-            return@setOnTouchListener false
+        binding.search.setOnClickListener {
+            val ft = supportFragmentManager.beginTransaction()
+            ft.add(R.id.searchContainer, SearchFragment())
+            ft.addToBackStack(null)
+            ft.commit()
         }
 
         binding.popUpMenuSort.setOnClickListener {
@@ -371,11 +341,11 @@ class FolderActivity : AppCompatActivity() {
                 val note = rvNotesAdapter.currentList[position]
                 var actionBtnTapped = false
                 noteViewModel.deleteNote(note)
-                binding.search.clearFocus()
-                if (binding.search.text.toString().isEmpty()) {
-                    observerDataChanges()
-                }
-                val snackBar = Snackbar.make(View(this@FolderActivity), "Note Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+//                binding.search.clearFocus()
+//                if (binding.search.text.toString().isEmpty()) {
+//                    observerDataChanges()
+//                }
+                val snackBar = Snackbar.make(binding.rvBoth, "Note Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                     override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                         super.onDismissed(transientBottomBar, event)
                     }

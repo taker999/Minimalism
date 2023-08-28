@@ -84,23 +84,21 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/appTitle">
 
-                    <EditText
+                    <TextView
                         android:id="@+id/search"
                         android:layout_width="0dp"
                         android:layout_height="50dp"
                         android:layout_weight="3"
                         android:background="@drawable/rounded_search"
-                        android:drawableStart="@drawable/ic_round_search_24"
                         android:drawablePadding="5dp"
                         android:hint="Search here"
-                        android:imeOptions="actionSearch"
-                        android:importantForAutofill="no"
-                        android:inputType="textFilter"
+                        android:gravity="center_vertical"
                         android:paddingHorizontal="18dp"
                         android:paddingVertical="5dp"
                         android:textColor="@color/black"
                         android:textColorHint="@color/hint_color"
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        app:drawableStartCompat="@drawable/ic_round_search_24" />
 
                 </LinearLayout>
 
@@ -245,6 +243,20 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/searchContainerParent"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:id="@+id/searchContainer"
+            android:animateLayoutChanges="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
