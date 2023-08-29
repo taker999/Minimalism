@@ -22,11 +22,26 @@ interface NoteDao {
     @Delete
     suspend fun deleteNote(note: Note)
 
+    @Delete
+    suspend fun deleteFolder(folder: Folder)
+
+    @Query("DELETE FROM notes_table WHERE folder_id = :query")
+    suspend fun deleteNotes(query: Int)
+
+    @Query("DELETE FROM folders_table WHERE ref_folder_id = :query")
+    suspend fun deleteFolders(query: Int)
+
     @Update
     suspend fun updateNote(note: Note)
 
     @Query("UPDATE notes_table set lock=0")
     suspend fun deleteAllLocks()
+
+    @Query("SELECT id FROM folders_table")
+    fun getAllFolderIds(): LiveData<List<Int>>
+
+    @Query("SELECT ref_folder_id FROM folders_table WHERE ref_folder_id NOT IN (:query)")
+    fun getUnreferencedFolders(query: List<Int>): Int?
 
     @Query("SELECT * FROM notes_table WHERE folder_id = :query ORDER BY id ASC")
     fun getAllNotesByOldest(query: Int): LiveData<List<Note>>

@@ -9,6 +9,8 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -106,6 +108,7 @@ class FolderActivity : AppCompatActivity() {
         }
 
         swipeToDelete(binding.rvNote)
+        swipeToDeleteFolder(binding.rvFolder)
 
         binding.search.setOnClickListener {
             val ft = supportFragmentManager.beginTransaction()
@@ -332,6 +335,66 @@ class FolderActivity : AppCompatActivity() {
                 popupWindow.dismiss()
             }
         }
+    }
+
+    private fun swipeToDeleteFolder(rvFolder: RecyclerView) {
+        val swipeToDeleteCallback = object : SwipeToDelete() {
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.absoluteAdapterPosition
+                val folder = rvFoldersAdapter.currentList[position]
+                val deleteFolderId = folder.id
+                var actionBtnTapped = false
+                noteViewModel.deleteFolder(folder)
+                Handler(Looper.getMainLooper()).postDelayed({
+                    if (!actionBtnTapped) {
+                        while (true) {
+                            noteViewModel.getAllFolderIds().observe(this@FolderActivity) {
+                                val getAllFolderIds = it
+                                Log.d("ddd", getAllFolderIds.toString())
+                            }
+//                            val deleteFolders = noteViewModel.getUnreferencedFolders(getAllFolderIds)
+//                            if (deleteFolders != null){
+//                                noteViewModel.deleteFolders(deleteFolders)
+//                            } else {
+//                                break
+//                            }
+                        }
+                        noteViewModel.deleteNotes(deleteFolderId)
+//                        noteViewModel.deleteFolders(deleteFolderId)
+                    }
+                },5000)
+//                binding.search.clearFocus()
+//                if (binding.search.text.toString().isEmpty()) {
+//                    observerDataChanges()
+//                }
+                val snackBar = Snackbar.make(binding.rvBoth, "Folder Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                    override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                        super.onDismissed(transientBottomBar, event)
+                    }
+
+                    override fun onShown(transientBottomBar: Snackbar?) {
+
+                        transientBottomBar?.setAction("UNDO") {
+                            noteViewModel.insertFolder(folder)
+                            actionBtnTapped = true
+                            binding.noteData.visibility = View.GONE
+                        }
+
+                        super.onShown(transientBottomBar)
+                    }
+                }).apply {
+                    animationMode = Snackbar.ANIMATION_MODE_FADE
+                    setAnchorView(R.id.innerFab)
+                }
+                snackBar.setActionTextColor(ContextCompat.getColor(this@FolderActivity, R.color.yellowOrange))
+                snackBar.show()
+            }
+
+        }
+
+        val itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
+        itemTouchHelper.attachToRecyclerView(rvFolder)
+
     }
 
     private fun swipeToDelete(rvNote: RecyclerView) {

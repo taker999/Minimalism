@@ -8,6 +8,8 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Gravity
@@ -94,6 +96,7 @@ class NoteFragment : Fragment() {
         recyclerViewDisplay()
 
         swipeToDelete(binding.rvNote)
+        swipeToDelete(binding.rvFolder)
 
         //implementing search
 
@@ -326,6 +329,54 @@ class NoteFragment : Fragment() {
                 popupWindow.dismiss()
             }
         }
+    }
+
+    private fun swipeToDeleteFolder(rvFolder: RecyclerView) {
+        val swipeToDeleteCallback = object : SwipeToDelete() {
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.absoluteAdapterPosition
+                val folder = rvFoldersAdapter.currentList[position]
+                val deleteFolderId = folder.id
+                var actionBtnTapped = false
+                noteViewModel.deleteFolder(folder)
+                Handler(Looper.getMainLooper()).postDelayed({
+                    if (!actionBtnTapped) {
+                        noteViewModel.deleteNotes(deleteFolderId)
+//                        noteViewModel.deleteFolders(deleteFolderId)
+                    }
+                },5000)
+//                binding.search.clearFocus()
+//                if (binding.search.text.toString().isEmpty()) {
+//                    observerDataChanges()
+//                }
+                val snackBar = Snackbar.make(binding.rvBoth, "Folder Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                    override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                        super.onDismissed(transientBottomBar, event)
+                    }
+
+                    override fun onShown(transientBottomBar: Snackbar?) {
+
+                        transientBottomBar?.setAction("UNDO") {
+                            noteViewModel.insertFolder(folder)
+                            actionBtnTapped = true
+                            binding.noteData.visibility = View.GONE
+                        }
+
+                        super.onShown(transientBottomBar)
+                    }
+                }).apply {
+                    animationMode = Snackbar.ANIMATION_MODE_FADE
+                    setAnchorView(R.id.innerFab)
+                }
+                snackBar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.yellowOrange))
+                snackBar.show()
+            }
+
+        }
+
+        val itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
+        itemTouchHelper.attachToRecyclerView(rvFolder)
+
     }
 
     private fun swipeToDelete(rvNote: RecyclerView) {

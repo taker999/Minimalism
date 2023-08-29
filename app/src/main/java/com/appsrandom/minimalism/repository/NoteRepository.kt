@@ -1,5 +1,6 @@
 package com.appsrandom.minimalism.repository
 
+import androidx.lifecycle.LiveData
 import com.appsrandom.minimalism.db.NoteDatabase
 import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.models.Note
@@ -12,7 +13,9 @@ class NoteRepository(private val db: NoteDatabase) {
 
     fun getAllFolders(query: Int) = db.getNoteDao().getAllFolders(query)
     fun getAllNotes(query: String) = db.getNoteDao().getAllNotes(query)
+    fun getUnreferencedFolders(query: List<Int>) = db.getNoteDao().getUnreferencedFolders(query)
     fun searchNote(query: String) = db.getNoteDao().searchNote(query)
+    fun getAllFolderIds() = db.getNoteDao().getAllFolderIds()
 
     suspend fun insertNote(note: Note) {
         db.getNoteDao().insertNote(note)
@@ -24,6 +27,18 @@ class NoteRepository(private val db: NoteDatabase) {
 
     suspend fun deleteNote(note: Note) {
         db.getNoteDao().deleteNote(note)
+    }
+
+    suspend fun deleteFolder(folder: Folder) {
+        db.getNoteDao().deleteFolder(folder)
+    }
+
+    suspend fun deleteNotes(query: Int) {
+        db.getNoteDao().deleteNotes(query)
+    }
+
+    suspend fun deleteFolders(query: Int) {
+        db.getNoteDao().deleteFolders(query)
     }
 
     suspend fun updateNote(note: Note) {
