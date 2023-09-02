@@ -25,7 +25,8 @@ data class Folder(
     @ColumnInfo(name = "folder_name")val folderName: String,
     @ColumnInfo(name = "folder_color")val folderColor: Int = -1,
     @PrimaryKey(autoGenerate = true)var id: Int = 0,
-    @ColumnInfo(name = "ref_folder_id")var refFolderId: Int = Int.MIN_VALUE
+    @ColumnInfo(name = "ref_folder_id")var refFolderId: Int = Int.MIN_VALUE,
+    @ColumnInfo(name = "is_selected")var isSelected: Boolean = false
 )
 
 

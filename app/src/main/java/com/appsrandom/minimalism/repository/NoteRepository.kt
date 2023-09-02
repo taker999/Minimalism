@@ -13,7 +13,7 @@ class NoteRepository(private val db: NoteDatabase) {
 
     fun getAllFolders(query: Int) = db.getNoteDao().getAllFolders(query)
     fun getAllNotes(query: String) = db.getNoteDao().getAllNotes(query)
-    fun getUnreferencedFolders(query: List<Int>) = db.getNoteDao().getUnreferencedFolders(query)
+    fun getUnreferencedFolders() = db.getNoteDao().getUnreferencedFolders()
     fun searchNote(query: String) = db.getNoteDao().searchNote(query)
     fun getAllFolderIds() = db.getNoteDao().getAllFolderIds()
 
@@ -27,6 +27,10 @@ class NoteRepository(private val db: NoteDatabase) {
 
     suspend fun deleteNote(note: Note) {
         db.getNoteDao().deleteNote(note)
+    }
+
+    suspend fun deleteFolders(folder: List<Folder>) {
+        db.getNoteDao().deleteFolders(folder)
     }
 
     suspend fun deleteFolder(folder: Folder) {

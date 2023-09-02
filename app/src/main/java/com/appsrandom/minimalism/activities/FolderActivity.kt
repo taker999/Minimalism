@@ -52,6 +52,10 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.r0adkll.slidr.Slidr
 import com.thebluealliance.spectrum.SpectrumPalette
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 class FolderActivity : AppCompatActivity() {
@@ -347,18 +351,16 @@ class FolderActivity : AppCompatActivity() {
                 noteViewModel.deleteFolder(folder)
                 Handler(Looper.getMainLooper()).postDelayed({
                     if (!actionBtnTapped) {
-                        while (true) {
-                            noteViewModel.getAllFolderIds().observe(this@FolderActivity) {
-                                val getAllFolderIds = it
-                                Log.d("ddd", getAllFolderIds.toString())
-                            }
-//                            val deleteFolders = noteViewModel.getUnreferencedFolders(getAllFolderIds)
+                        noteViewModel.getUnreferencedFolders().observe(this@FolderActivity) {
+                            noteViewModel.deleteFolders(it)
+                        }
+                        noteViewModel.getUnreferencedFolders().removeObservers(this@FolderActivity)
+//                        val deleteFolders = noteViewModel.getUnreferencedFolders(getAllFolderIds)
 //                            if (deleteFolders != null){
 //                                noteViewModel.deleteFolders(deleteFolders)
 //                            } else {
 //                                break
 //                            }
-                        }
                         noteViewModel.deleteNotes(deleteFolderId)
 //                        noteViewModel.deleteFolders(deleteFolderId)
                     }

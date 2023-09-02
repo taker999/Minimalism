@@ -19,6 +19,10 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         repository.deleteNote(note)
     }
 
+    fun deleteFolders(folder: List<Folder>) = viewModelScope.launch(Dispatchers.IO) {
+        repository.deleteFolders(folder)
+    }
+
     fun deleteFolder(folder: Folder) = viewModelScope.launch(Dispatchers.IO) {
         repository.deleteFolder(folder)
     }
@@ -67,11 +71,11 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         return repository.allNotesByColor(query)
     }
 
-    fun getUnreferencedFolders(query: List<Int>): Int? {
-        return repository.getUnreferencedFolders(query)
+    fun getUnreferencedFolders(): LiveData<List<Folder>> {
+        return repository.getUnreferencedFolders()
     }
 
-    fun getAllFolderIds(): LiveData<List<Int>> {
+    fun getAllFolderIds(): List<Int> {
         return repository.getAllFolderIds()
     }
 

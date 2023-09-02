@@ -338,7 +338,7 @@ class NoteFragment : Fragment() {
                 val folder = rvFoldersAdapter.currentList[position]
                 val deleteFolderId = folder.id
                 var actionBtnTapped = false
-                noteViewModel.deleteFolder(folder)
+//                noteViewModel.deleteFolder(folder)
                 Handler(Looper.getMainLooper()).postDelayed({
                     if (!actionBtnTapped) {
                         noteViewModel.deleteNotes(deleteFolderId)
@@ -480,7 +480,7 @@ class NoteFragment : Fragment() {
         observerDataChanges()
     }
 
-    fun observerDataChanges() {
+    private fun observerDataChanges() {
 
         when(sharedPreferencesSort.getString("sort", "0")) {
             "oldest" -> {

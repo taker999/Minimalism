@@ -45,6 +45,16 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="This is Folder name" />
 
+            <ImageView
+                android:id="@+id/tick"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:contentDescription="Selected"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_tick" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
