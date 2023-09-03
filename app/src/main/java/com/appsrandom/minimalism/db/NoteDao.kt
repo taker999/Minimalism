@@ -37,6 +37,9 @@ interface NoteDao {
     @Update
     suspend fun updateNote(note: Note)
 
+    @Update
+    suspend fun updateFolder(folder: Folder)
+
     @Query("UPDATE notes_table set lock=0")
     suspend fun deleteAllLocks()
 

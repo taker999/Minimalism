@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -22,6 +23,7 @@ import com.appsrandom.minimalism.databinding.ActivityMainBinding
 import com.appsrandom.minimalism.db.NoteDatabase
 import com.appsrandom.minimalism.fragments.NoteFragment
 import com.appsrandom.minimalism.fragments.SettingsFragment
+import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.repository.NoteRepository
 import com.appsrandom.minimalism.viewModel.NoteViewModel
 import com.appsrandom.minimalism.viewModel.NoteViewModelFactory
@@ -73,15 +75,9 @@ class MainActivity : AppCompatActivity() {
                     return@setOnItemSelectedListener true
                 }
                 R.id.navEdit -> {
-
-                    showPopupWindow(this)
-                    return@setOnItemSelectedListener false
-
-                }
-                R.id.navDelete -> {
+                    NoteFragment().showPopupWindowEditFolder(this)
 
                     return@setOnItemSelectedListener false
-
                 }
             }
             return@setOnItemSelectedListener false
@@ -114,54 +110,6 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("whichActivity", "Main")
             startActivity(intent)
             finish()
-        }
-    }
-
-    private fun showPopupWindow(activity: Activity) {
-
-        val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val view = inflater.inflate(R.layout.popup_create_folder, null)
-
-        val popupWindow = PopupWindow(
-            view,
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            true
-        )
-
-        // If you want to dismiss the popup window when clicking outside it
-        popupWindow.isOutsideTouchable = true
-        popupWindow.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-
-        // Show the popup window at the center of the screen
-        popupWindow.showAtLocation(activity.findViewById(android.R.id.content), Gravity.CENTER, 0, 0)
-
-        // Dismiss the popup window when the Dismiss button is clicked
-        val cancelBtn = view.findViewById<Button>(R.id.cancelBtnFolder)
-        cancelBtn.setOnClickListener {
-            popupWindow.dismiss()
-        }
-
-        val createFolderParentLayout = view.findViewById<LinearLayout>(R.id.createFolderParentLayout)
-        createFolderParentLayout.setBackgroundColor(folderColor)
-
-        val colorPickerFolder = view.findViewById<SpectrumPalette>(R.id.colorPickerFolder)
-        colorPickerFolder.setSelectedColor(folderColor)
-        colorPickerFolder.setOnColorSelectedListener {
-            folderColor = it
-            createFolderParentLayout.setBackgroundColor(folderColor)
-        }
-
-        val folderNameView = view.findViewById<TextInputEditText>(R.id.folderName)
-        folderNameView.setText(fName)
-
-        val okBtn = view.findViewById<Button>(R.id.addBtn)
-        okBtn.setOnClickListener {
-            val folderName = folderNameView.text.toString()
-            if (folderName.isNotBlank()) {
-//                noteViewModel.insertFolder(Folder(folderName, folderColor))
-                popupWindow.dismiss()
-            }
         }
     }
 

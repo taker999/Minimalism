@@ -38,12 +38,13 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
     private val items: ArrayList<Folder> = ArrayList()
     var folderColor = -1
     var fName = ""
-    private lateinit var view: View
+    private var dataClickListener: DataClickListener? = null
+
+    fun setDataPassListener(listener: DataClickListener) {
+        dataClickListener = listener
+    }
 
     inner class FoldersViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        init {
-            view = itemView
-        }
         private val binding = FolderItemBinding.bind(itemView)
         var folderName = binding.folderTitle
         val tickIcon = binding.tick
@@ -113,6 +114,7 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
                         menu.findItem(R.id.navDelete).isVisible = false
                     }
                 }
+                dataClickListener?.onDataItemClicked(items)
                 return@setOnLongClickListener true
             }
 
@@ -155,6 +157,7 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
                         }
                     }
                 }
+                dataClickListener?.onDataItemClicked(items)
             }
         }
 
@@ -168,6 +171,10 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
         override fun areContentsTheSame(oldItem: Folder, newItem: Folder): Boolean {
             return oldItem.id == newItem.id
         }
+    }
+
+    interface DataClickListener {
+        fun onDataItemClicked(data: ArrayList<Folder>)
     }
 
 }

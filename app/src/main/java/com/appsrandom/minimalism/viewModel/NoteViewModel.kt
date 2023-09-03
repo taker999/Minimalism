@@ -47,6 +47,10 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         repository.updateNote(note)
     }
 
+    fun updateFolder(folder: Folder) = viewModelScope.launch(Dispatchers.IO) {
+        repository.updateFolder(folder)
+    }
+
     fun searchNote(query: String): LiveData<List<Note>> {
         return repository.searchNote(query)
     }

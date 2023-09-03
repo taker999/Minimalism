@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuInflater
@@ -23,6 +24,7 @@ import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -40,6 +42,7 @@ import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.utils.SwipeToDelete
 import com.appsrandom.minimalism.utils.hideKeyboard
 import com.appsrandom.minimalism.viewModel.NoteViewModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -48,7 +51,7 @@ import com.thebluealliance.spectrum.SpectrumPalette
 import java.util.concurrent.TimeUnit
 
 
-class NoteFragment : Fragment() {
+class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
 
     private lateinit var binding: FragmentNoteBinding
     private val noteViewModel: NoteViewModel by activityViewModels()
@@ -58,6 +61,7 @@ class NoteFragment : Fragment() {
     private lateinit var sharedPreferencesSort: SharedPreferences
     private var folderColor = -1
     private lateinit var popupMenu: PopupMenu
+    private lateinit var items: ArrayList<Folder>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -72,11 +76,42 @@ class NoteFragment : Fragment() {
     ): View {
         // Inflate the layout for this fragment
         binding = FragmentNoteBinding.inflate(layoutInflater, container, false)
+//        val view = inflater.inflate(R.layout.fragment_note, container, false)
 
         popupMenu = PopupMenu(requireContext(), binding.popUpMenu)
         val popupInflater: MenuInflater = popupMenu.menuInflater
         popupInflater.inflate(R.menu.folder_view_items, popupMenu.menu)
         showMenu()
+
+//        (activity as MainActivity).binding.bottomNavigationView.setOnItemSelectedListener {
+//            when(it.itemId) {
+//                R.id.navNote -> {
+//                    val fm = parentFragmentManager
+//                    val ft = fm.beginTransaction().setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right)
+//                    ft.replace(R.id.container, NoteFragment())
+//                    ft.commit()
+//                    return@setOnItemSelectedListener true
+//                }
+//                R.id.navSettings -> {
+//                    val fm = parentFragmentManager
+//                    val ft = fm.beginTransaction().setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+//
+//                    ft.replace(R.id.container, SettingsFragment())
+//                    ft.commit()
+//                    return@setOnItemSelectedListener true
+//                }
+//                R.id.navEdit -> {
+//                    showPopupWindowEditFolder(requireActivity())
+//
+//                    return@setOnItemSelectedListener false
+//                }
+//                R.id.navDelete -> {
+//
+//                    return@setOnItemSelectedListener false
+//                }
+//            }
+//            return@setOnItemSelectedListener false
+//        }
 
         sharedPreferencesView = activity?.getSharedPreferences("sharedPrefsView", 0) as SharedPreferences
         sharedPreferencesSort = activity?.getSharedPreferences("sharedPrefsSort", 0) as SharedPreferences
@@ -286,6 +321,56 @@ class NoteFragment : Fragment() {
         bottomSheetDialog.show()
     }
 
+    fun showPopupWindowEditFolder(activity: Activity) {
+
+        val view = activity.layoutInflater.inflate(R.layout.popup_create_folder, null)
+
+        val popupWindow = PopupWindow(
+            view,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+
+        // If you want to dismiss the popup window when clicking outside it
+        popupWindow.isOutsideTouchable = true
+        popupWindow.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        // Show the popup window at the center of the screen
+        popupWindow.showAtLocation(activity.findViewById(android.R.id.content), Gravity.CENTER, 0, 0)
+
+        // Dismiss the popup window when the Dismiss button is clicked
+        val cancelBtn = view.findViewById<Button>(R.id.cancelBtnFolder)
+        cancelBtn.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        val createFolderParentLayout = view.findViewById<LinearLayout>(R.id.createFolderParentLayout)
+//        createFolderParentLayout.setBackgroundColor(items[0].folderColor)
+
+        val colorPickerFolder = view.findViewById<SpectrumPalette>(R.id.colorPickerFolder)
+        colorPickerFolder.setSelectedColor(items[0].folderColor)
+        colorPickerFolder.setOnColorSelectedListener {
+            items[0].folderColor = it
+            createFolderParentLayout.setBackgroundColor(items[0].folderColor)
+        }
+
+        val folderNameView = view.findViewById<TextInputEditText>(R.id.folderName)
+        folderNameView.setText(items[0].folderName)
+
+        val okBtn = view.findViewById<Button>(R.id.addBtn)
+        okBtn.setOnClickListener {
+            val folderName = folderNameView.text.toString()
+            if (folderName.isNotBlank()) {
+                items[0].folderName = folderName
+                items[0].isSelected = false
+                noteViewModel.updateFolder(items[0])
+                (activity as MainActivity).recreate()
+                popupWindow.dismiss()
+            }
+        }
+    }
+
     private fun showPopupWindow(activity: Activity) {
 
         val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -439,6 +524,7 @@ class NoteFragment : Fragment() {
             rvFoldersAdapter = RVFoldersAdapter()
             rvNotesAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             adapter = rvFoldersAdapter
+            rvFoldersAdapter.setDataPassListener(this@NoteFragment)
         }
         observerFolderDataChanges()
     }
@@ -518,5 +604,9 @@ class NoteFragment : Fragment() {
         recyclerViewDisplay()
         (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
         binding.viewFab.isClickable = true
+    }
+
+    override fun onDataItemClicked(data: ArrayList<Folder>) {
+        items = data
     }
 }
