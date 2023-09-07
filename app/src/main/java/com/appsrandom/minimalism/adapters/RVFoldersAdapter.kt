@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -25,6 +26,7 @@ import com.appsrandom.minimalism.databinding.FolderItemBinding
 import com.appsrandom.minimalism.fragments.NoteFragment
 import com.appsrandom.minimalism.fragments.SettingsFragment
 import com.appsrandom.minimalism.models.Folder
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.textfield.TextInputEditText
 import com.thebluealliance.spectrum.SpectrumPalette
 import kotlinx.coroutines.CoroutineScope
@@ -36,9 +38,11 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
 
     private lateinit var activityContext: Context
     private val items: ArrayList<Folder> = ArrayList()
-    var folderColor = -1
-    var fName = ""
+    private var folderColor = -1
+    private var fName = ""
     private var dataClickListener: DataClickListener? = null
+    private lateinit var menu: Menu
+    private lateinit var bottomNavEditFolder: BottomNavigationView
 
     fun setDataPassListener(listener: DataClickListener) {
         dataClickListener = listener
@@ -62,31 +66,35 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
             fName = folder.folderName
 
             folderColor = folder.folderColor
-            CoroutineScope(Dispatchers.IO).launch {
-                val sharedPreferences = holder.parent.context.getSharedPreferences("sharedPrefs",
-                    AppCompatActivity.MODE_PRIVATE
-                )
-                val isDarkModeOn = sharedPreferences?.getBoolean("isDarkModeOn", false)
 
-                withContext(Dispatchers.Main) {
-                    if (isDarkModeOn as Boolean && folderColor == -1) {
-                        folderColor = -16777216
-                        holder.parent.setCardBackgroundColor(-16777216)
-                    } else if (!isDarkModeOn && folderColor == -16777216) {
-                        folderColor = -1
-                        holder.parent.setCardBackgroundColor(-1)
-                    } else {
-                        holder.parent.setCardBackgroundColor(folderColor)
-                    }
-                }
+            val sharedPreferences = holder.parent.context.getSharedPreferences("sharedPrefs",
+                AppCompatActivity.MODE_PRIVATE
+            )
+            val isDarkModeOn = sharedPreferences?.getBoolean("isDarkModeOn", false)
+
+            if (isDarkModeOn as Boolean && folderColor == -1) {
+                folderColor = -16777216
+                holder.parent.setCardBackgroundColor(folderColor)
+            } else if (!isDarkModeOn && folderColor == -16777216) {
+                folderColor = -1
+                holder.parent.setCardBackgroundColor(folderColor)
+            } else {
+                holder.parent.setCardBackgroundColor(folderColor)
             }
 
-            val menu = (activityContext as MainActivity).binding.bottomNavigationView.menu
+            try {
+                menu = (activityContext as MainActivity).binding.bottomNavigationViewEditFolder.menu
+                bottomNavEditFolder = (activityContext as MainActivity).binding.bottomNavigationViewEditFolder
+            } catch (_: Exception) {
+                menu = (activityContext as FolderActivity).binding.bottomNavigationViewEditFolder.menu
+                bottomNavEditFolder = (activityContext as FolderActivity).binding.bottomNavigationViewEditFolder
+            }
 
             holder.parent.setOnLongClickListener {
                 folder.isSelected = !folder.isSelected
                 if (folder.isSelected) {
                     items.add(folder)
+                    bottomNavEditFolder.visibility = View.VISIBLE
                     holder.tickIcon.visibility = View.VISIBLE
                     menu.findItem(R.id.navNote).isVisible = false
                     menu.findItem(R.id.navSettings).isVisible = false
@@ -101,13 +109,16 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
                     holder.tickIcon.visibility = View.GONE
                     items.remove(folder)
                     if (items.size == 1) {
+                        bottomNavEditFolder.visibility = View.VISIBLE
                         menu.findItem(R.id.navEdit).isVisible = true
                         menu.findItem(R.id.navDelete).isVisible = true
                     } else {
+                        bottomNavEditFolder.visibility = View.VISIBLE
                         menu.findItem(R.id.navEdit).isVisible = false
                         menu.findItem(R.id.navDelete).isVisible = true
                     }
                     if (items.isEmpty()) {
+                        bottomNavEditFolder.visibility = View.GONE
                         menu.findItem(R.id.navNote).isVisible = true
                         menu.findItem(R.id.navSettings).isVisible = true
                         menu.findItem(R.id.navEdit).isVisible = false
@@ -129,6 +140,7 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
                     folder.isSelected = !folder.isSelected
                     if (folder.isSelected) {
                         items.add(folder)
+                        bottomNavEditFolder.visibility = View.VISIBLE
                         holder.tickIcon.visibility = View.VISIBLE
                         menu.findItem(R.id.navNote).isVisible = false
                         menu.findItem(R.id.navSettings).isVisible = false
@@ -143,13 +155,16 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
                         holder.tickIcon.visibility = View.GONE
                         items.remove(folder)
                         if (items.size == 1) {
+                            bottomNavEditFolder.visibility = View.VISIBLE
                             menu.findItem(R.id.navEdit).isVisible = true
                             menu.findItem(R.id.navDelete).isVisible = true
                         } else {
+                            bottomNavEditFolder.visibility = View.VISIBLE
                             menu.findItem(R.id.navEdit).isVisible = false
                             menu.findItem(R.id.navDelete).isVisible = true
                         }
                         if (items.isEmpty()) {
+                            bottomNavEditFolder.visibility = View.GONE
                             menu.findItem(R.id.navNote).isVisible = true
                             menu.findItem(R.id.navSettings).isVisible = true
                             menu.findItem(R.id.navEdit).isVisible = false

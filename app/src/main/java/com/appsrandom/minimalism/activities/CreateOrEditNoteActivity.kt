@@ -117,7 +117,8 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
                 override fun handleOnBackPressed() {
                     exitOnBackPressed()
                 }
-            })
+            }
+        )
 
         binding.backButton.setOnClickListener {
             saveNote()

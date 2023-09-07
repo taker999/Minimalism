@@ -23,6 +23,9 @@ interface NoteDao {
     suspend fun deleteNote(note: Note)
 
     @Delete
+    suspend fun deleteNotes(note: List<Note>)
+
+    @Delete
     suspend fun deleteFolders(folder: List<Folder>)
 
     @Delete
@@ -48,6 +51,9 @@ interface NoteDao {
 
     @Query("SELECT * FROM folders_table WHERE ref_folder_id NOT IN (SELECT id FROM folders_table) AND ref_folder_id != -2147483648")
     fun getUnreferencedFolders(): LiveData<List<Folder>>
+
+    @Query("SELECT * FROM notes_table WHERE folder_id NOT IN (SELECT id FROM folders_table) AND folder_id != -2147483648")
+    fun getUnreferencedNotes(): LiveData<List<Note>>
 
     @Query("SELECT * FROM notes_table WHERE folder_id = :query ORDER BY id ASC")
     fun getAllNotesByOldest(query: Int): LiveData<List<Note>>

@@ -1,6 +1,7 @@
 package com.appsrandom.minimalism.activities
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -25,6 +26,7 @@ import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -50,6 +52,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textview.MaterialTextView
 import com.r0adkll.slidr.Slidr
 import com.thebluealliance.spectrum.SpectrumPalette
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +61,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-class FolderActivity : AppCompatActivity() {
+class FolderActivity : AppCompatActivity(), RVFoldersAdapter.DataClickListener {
 
     lateinit var binding: ActivityFolderBinding
     private lateinit var rvNotesAdapter: RVNotesAdapter
@@ -70,6 +73,7 @@ class FolderActivity : AppCompatActivity() {
     private lateinit var sharedPreferencesView: SharedPreferences
     private lateinit var sharedPreferencesSort: SharedPreferences
     private lateinit var popupMenu: PopupMenu
+    private lateinit var items: ArrayList<Folder>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFolderBinding.inflate(layoutInflater)
@@ -93,6 +97,32 @@ class FolderActivity : AppCompatActivity() {
         val noteViewModelFactory = NoteViewModelFactory(noteRepository)
         noteViewModel = ViewModelProvider(this, noteViewModelFactory)[NoteViewModel::class.java]
 
+        try {
+            noteViewModel.getUnreferencedFolders().observe(this) {list->
+                noteViewModel.deleteFolders(list)
+            }
+        } catch (_: Exception) {
+
+        }
+
+        try {
+            noteViewModel.getUnreferencedNotes().observe(this) {
+                noteViewModel.deleteNotes(it)
+            }
+        } catch (_: Exception) {
+
+        }
+
+        noteViewModel.getAllNotesByOldest(folderId).observe(this) {
+            if (it.isEmpty()) {
+                noteViewModel.getAllFolders(folderId).observe(this) {list->
+                    binding.noteData.isVisible = list.isEmpty()
+                }
+            } else {
+                binding.noteData.isVisible = it.isEmpty()
+            }
+        }
+
         binding.appTitle.text = folderName
 
         recyclerViewDisplay()
@@ -112,13 +142,42 @@ class FolderActivity : AppCompatActivity() {
         }
 
         swipeToDelete(binding.rvNote)
-        swipeToDeleteFolder(binding.rvFolder)
 
         binding.search.setOnClickListener {
             val ft = supportFragmentManager.beginTransaction()
             ft.add(R.id.searchContainer, SearchFragment())
             ft.addToBackStack(null)
             ft.commit()
+        }
+
+        binding.bottomNavigationViewEditFolder.setOnItemSelectedListener {
+            when(it.itemId) {
+                R.id.navEdit -> {
+                    showPopupWindowEditFolder(this)
+
+                    return@setOnItemSelectedListener false
+                }
+                R.id.navDelete -> {
+
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Delete Note")
+                    builder.setMessage("Are you sure you want to delete these folders permanently?")
+                    builder.setIcon(R.drawable.ic_delete)
+                        .setPositiveButton("Yes") { _, _ ->
+                            Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
+                            noteViewModel.deleteFolders(items)
+                            this.recreate()
+                        }
+                        .setNegativeButton("No") { _, _ ->
+                            // User cancelled the dialog
+                        }
+                    // Create the AlertDialog object and return it
+                    builder.show()
+
+                    return@setOnItemSelectedListener false
+                }
+            }
+            return@setOnItemSelectedListener false
         }
 
         binding.popUpMenuSort.setOnClickListener {
@@ -218,6 +277,81 @@ class FolderActivity : AppCompatActivity() {
                 }
             }
 
+        }
+
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    exitOnBackPressed()
+                }
+            }
+        )
+
+    }
+
+    private fun exitOnBackPressed() {
+        try {
+            if (items.isEmpty()) {
+                finish()
+            } else {
+                this.recreate()
+            }
+        } catch (_: Exception) {
+            finish()
+        }
+    }
+
+    private fun showPopupWindowEditFolder(activity: Activity) {
+
+        val view = activity.layoutInflater.inflate(R.layout.popup_create_folder, null)
+
+        val popupWindow = PopupWindow(
+            view,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+
+        // If you want to dismiss the popup window when clicking outside it
+        popupWindow.isOutsideTouchable = true
+        popupWindow.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        // Show the popup window at the center of the screen
+        popupWindow.showAtLocation(activity.findViewById(android.R.id.content), Gravity.CENTER, 0, 0)
+
+        // Dismiss the popup window when the Dismiss button is clicked
+        val cancelBtn = view.findViewById<Button>(R.id.cancelBtnFolder)
+        cancelBtn.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        val createFolderParentLayout = view.findViewById<LinearLayout>(R.id.createFolderParentLayout)
+//        createFolderParentLayout.setBackgroundColor(items[0].folderColor)
+
+        val colorPickerFolder = view.findViewById<SpectrumPalette>(R.id.colorPickerFolder)
+        colorPickerFolder.setSelectedColor(items[0].folderColor)
+        colorPickerFolder.setOnColorSelectedListener {
+            items[0].folderColor = it
+            createFolderParentLayout.setBackgroundColor(items[0].folderColor)
+        }
+
+        val folderNameView = view.findViewById<TextInputEditText>(R.id.folderName)
+        folderNameView.setText(items[0].folderName)
+
+        view.findViewById<MaterialTextView>(R.id.materialTextView).text = "Edit Folder"
+
+        val okBtn = view.findViewById<Button>(R.id.addBtn)
+        okBtn.text = "SAVE"
+        okBtn.setOnClickListener {
+            val folderName = folderNameView.text.toString()
+            if (folderName.isNotBlank()) {
+                items[0].folderName = folderName
+                items[0].isSelected = false
+                noteViewModel.updateFolder(items[0])
+                this.recreate()
+                popupWindow.dismiss()
+            }
         }
     }
 
@@ -341,64 +475,6 @@ class FolderActivity : AppCompatActivity() {
         }
     }
 
-    private fun swipeToDeleteFolder(rvFolder: RecyclerView) {
-        val swipeToDeleteCallback = object : SwipeToDelete() {
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.absoluteAdapterPosition
-                val folder = rvFoldersAdapter.currentList[position]
-                val deleteFolderId = folder.id
-                var actionBtnTapped = false
-                noteViewModel.deleteFolder(folder)
-                Handler(Looper.getMainLooper()).postDelayed({
-                    if (!actionBtnTapped) {
-                        noteViewModel.getUnreferencedFolders().observe(this@FolderActivity) {
-                            noteViewModel.deleteFolders(it)
-                        }
-                        noteViewModel.getUnreferencedFolders().removeObservers(this@FolderActivity)
-//                        val deleteFolders = noteViewModel.getUnreferencedFolders(getAllFolderIds)
-//                            if (deleteFolders != null){
-//                                noteViewModel.deleteFolders(deleteFolders)
-//                            } else {
-//                                break
-//                            }
-                        noteViewModel.deleteNotes(deleteFolderId)
-//                        noteViewModel.deleteFolders(deleteFolderId)
-                    }
-                },5000)
-//                binding.search.clearFocus()
-//                if (binding.search.text.toString().isEmpty()) {
-//                    observerDataChanges()
-//                }
-                val snackBar = Snackbar.make(binding.rvBoth, "Folder Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                    override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
-                        super.onDismissed(transientBottomBar, event)
-                    }
-
-                    override fun onShown(transientBottomBar: Snackbar?) {
-
-                        transientBottomBar?.setAction("UNDO") {
-                            noteViewModel.insertFolder(folder)
-                            actionBtnTapped = true
-                            binding.noteData.visibility = View.GONE
-                        }
-
-                        super.onShown(transientBottomBar)
-                    }
-                }).apply {
-                    animationMode = Snackbar.ANIMATION_MODE_FADE
-                    setAnchorView(R.id.innerFab)
-                }
-                snackBar.setActionTextColor(ContextCompat.getColor(this@FolderActivity, R.color.yellowOrange))
-                snackBar.show()
-            }
-
-        }
-
-        val itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
-        itemTouchHelper.attachToRecyclerView(rvFolder)
-
-    }
-
     private fun swipeToDelete(rvNote: RecyclerView) {
         val swipeToDeleteCallback = object : SwipeToDelete() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
@@ -460,6 +536,7 @@ class FolderActivity : AppCompatActivity() {
             rvFoldersAdapter = RVFoldersAdapter()
             rvNotesAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             adapter = rvFoldersAdapter
+            rvFoldersAdapter.setDataPassListener(this@FolderActivity)
         }
         observerFolderDataChanges()
     }
@@ -467,7 +544,7 @@ class FolderActivity : AppCompatActivity() {
     private fun observerFolderDataChanges() {
 //        rvFoldersAdapter.submitList(listOf(Folder("g", -1)))
         noteViewModel.getAllFolders(folderId).observe(this) {list->
-            if (binding.noteData.isVisible) binding.noteData.visibility = View.GONE
+            
             rvFoldersAdapter.submitList(list)
         }
     }
@@ -505,28 +582,28 @@ class FolderActivity : AppCompatActivity() {
         when(sharedPreferencesSort.getString("sort", "0")) {
             "oldest" -> {
                 noteViewModel.getAllNotesByOldest(folderId).observe(this) {list->
-                    binding.noteData.isVisible = list.isEmpty()
+                    
                     rvNotesAdapter.submitList(list)
                 }
             }
 
             "newest" -> {
                 noteViewModel.getAllNotesByNewest(folderId).observe(this) {list->
-                    binding.noteData.isVisible = list.isEmpty()
+                    
                     rvNotesAdapter.submitList(list)
                 }
             }
 
             "color" -> {
                 noteViewModel.getAllNotesByColor(folderId).observe(this) {list->
-                    binding.noteData.isVisible = list.isEmpty()
+                    
                     rvNotesAdapter.submitList(list)
                 }
             }
 
             else -> {
                 noteViewModel.getAllNotesByOldest(folderId).observe(this) {list->
-                    binding.noteData.isVisible = list.isEmpty()
+                    
                     rvNotesAdapter.submitList(list)
                 }
             }
@@ -537,5 +614,19 @@ class FolderActivity : AppCompatActivity() {
         super.onResume()
         recyclerViewDisplay()
         binding.viewFab.isClickable = true
+    }
+
+    override fun onDataItemClicked(data: ArrayList<Folder>) {
+        items = data
+        binding.appTitleSelectedSize.isVisible = items.isNotEmpty()
+        binding.appTitle.isVisible = items.isEmpty()
+        binding.addNoteParent.isVisible = items.isEmpty()
+        binding.popUpMenu.isVisible = items.isEmpty()
+        binding.popUpMenuSort.isVisible = items.isEmpty()
+        binding.search.isVisible = items.isEmpty()
+        binding.rvNote.isVisible = items.isEmpty()
+        if (items.isNotEmpty()) {
+            binding.appTitleSelectedSize.text = "${items.size} Selected"
+        }
     }
 }

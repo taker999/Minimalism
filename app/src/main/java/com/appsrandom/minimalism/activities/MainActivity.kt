@@ -36,9 +36,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var noteViewModel: NoteViewModel
 
-    private var folderColor = -1
-    private var fName = ""
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -57,9 +54,6 @@ class MainActivity : AppCompatActivity() {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        folderColor = RVFoldersAdapter().folderColor
-        fName = RVFoldersAdapter().fName
-
         binding.bottomNavigationView.setOnItemSelectedListener {
             when(it.itemId) {
                 R.id.navNote -> {
@@ -73,11 +67,6 @@ class MainActivity : AppCompatActivity() {
                     ft.replace(R.id.container, SettingsFragment())
                     ft.commit()
                     return@setOnItemSelectedListener true
-                }
-                R.id.navEdit -> {
-                    NoteFragment().showPopupWindowEditFolder(this)
-
-                    return@setOnItemSelectedListener false
                 }
             }
             return@setOnItemSelectedListener false
