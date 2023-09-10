@@ -15,8 +15,8 @@ android {
         applicationId "com.appsrandom.minimalism"
         minSdk 24
         targetSdk 34
-        versionCode 11
-        versionName "4.7"
+        versionCode 15
+        versionName "6.9"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -124,5 +124,8 @@ dependencies {
 
     //Pattern Lock
     implementation "com.andrognito.patternlockview:patternlockview:1.0.0"
+
+    //AdMob
+    implementation 'com.google.android.gms:play-services-ads:22.3.0'
 
 }

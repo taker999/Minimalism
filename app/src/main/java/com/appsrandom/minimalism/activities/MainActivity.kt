@@ -27,6 +27,7 @@ import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.repository.NoteRepository
 import com.appsrandom.minimalism.viewModel.NoteViewModel
 import com.appsrandom.minimalism.viewModel.NoteViewModelFactory
+import com.google.android.gms.ads.MobileAds
 import com.google.android.material.textfield.TextInputEditText
 import com.thebluealliance.spectrum.SpectrumPalette
 
@@ -40,6 +41,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        MobileAds.initialize(this) {}
 
         loadFragment(NoteFragment(), true)
         binding.bottomNavigationView.selectedItemId = R.id.navNote
