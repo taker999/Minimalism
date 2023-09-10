@@ -63,9 +63,9 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
     override fun onBindViewHolder(holder: FoldersViewHolder, position: Int) {
         getItem(position).let {folder ->
             holder.folderName.text = folder.folderName
-            fName = folder.folderName
+            fName = folder.folderName.toString()
 
-            folderColor = folder.folderColor
+            folderColor = folder.folderColor as Int
 
             val sharedPreferences = holder.parent.context.getSharedPreferences("sharedPrefs",
                 AppCompatActivity.MODE_PRIVATE
@@ -91,8 +91,8 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
             }
 
             holder.parent.setOnLongClickListener {
-                folder.isSelected = !folder.isSelected
-                if (folder.isSelected) {
+                folder.isSelected = !folder.isSelected!!
+                if (folder.isSelected as Boolean) {
                     items.add(folder)
                     bottomNavEditFolder.visibility = View.VISIBLE
                     holder.tickIcon.visibility = View.VISIBLE
@@ -137,8 +137,8 @@ class RVFoldersAdapter: ListAdapter<Folder, RVFoldersAdapter.FoldersViewHolder>(
                     intent.putExtra("folderColor", folderColor)
                     holder.parent.context.startActivity(intent)
                 } else {
-                    folder.isSelected = !folder.isSelected
-                    if (folder.isSelected) {
+                    folder.isSelected = !folder.isSelected!!
+                    if (folder.isSelected as Boolean) {
                         items.add(folder)
                         bottomNavEditFolder.visibility = View.VISIBLE
                         holder.tickIcon.visibility = View.VISIBLE

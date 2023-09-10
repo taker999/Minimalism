@@ -379,10 +379,10 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
 //        createFolderParentLayout.setBackgroundColor(items[0].folderColor)
 
         val colorPickerFolder = view.findViewById<SpectrumPalette>(R.id.colorPickerFolder)
-        colorPickerFolder.setSelectedColor(items[0].folderColor)
+        colorPickerFolder.setSelectedColor(items[0].folderColor as Int)
         colorPickerFolder.setOnColorSelectedListener {
             items[0].folderColor = it
-            createFolderParentLayout.setBackgroundColor(items[0].folderColor)
+            createFolderParentLayout.setBackgroundColor(items[0].folderColor as Int)
         }
 
         val folderNameView = view.findViewById<TextInputEditText>(R.id.folderName)

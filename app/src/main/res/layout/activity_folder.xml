@@ -30,7 +30,7 @@
                     android:id="@+id/appTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="2dp"
+                    android:layout_marginStart="40dp"
                     android:layout_marginTop="15dp"
                     android:fontFamily="@font/google_sans_bold"
                     android:text="@string/app_name"
@@ -123,6 +123,20 @@
         </com.google.android.material.appbar.MaterialToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
+
+    <ImageView
+        android:id="@+id/backButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="9dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="8dp"
+        android:contentDescription="Back"
+        android:src="@drawable/ic_round_arrow_back_24"
+        app:tint="@color/black" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/rvBoth"

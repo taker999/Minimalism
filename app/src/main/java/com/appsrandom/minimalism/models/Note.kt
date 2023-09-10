@@ -16,17 +16,17 @@ data class Note(
     @ColumnInfo(name = "color")val color: Int = -1,
     @ColumnInfo(name = "lock")val isLocked: String? = "0",
     @PrimaryKey(autoGenerate = true)var id: Int = 0,
-    @ColumnInfo(name = "folder_id")var folderId: Int = Int.MIN_VALUE
+    @ColumnInfo(name = "folder_id")var folderId: Int? = Int.MIN_VALUE
 )
 
 @Keep
 @Entity(tableName = "folders_table")
 data class Folder(
-    @ColumnInfo(name = "folder_name")var folderName: String,
-    @ColumnInfo(name = "folder_color")var folderColor: Int = -1,
-    @PrimaryKey(autoGenerate = true)var id: Int = 0,
-    @ColumnInfo(name = "ref_folder_id")var refFolderId: Int = Int.MIN_VALUE,
-    @ColumnInfo(name = "is_selected")var isSelected: Boolean = false
+    @ColumnInfo(name = "folder_name")var folderName: String?,
+    @ColumnInfo(name = "folder_color")var folderColor: Int? = -1,
+    @PrimaryKey(autoGenerate = true)var id: Int? = 0,
+    @ColumnInfo(name = "ref_folder_id")var refFolderId: Int? = Int.MIN_VALUE,
+    @ColumnInfo(name = "is_selected")var isSelected: Boolean? = false
 )
 
 
