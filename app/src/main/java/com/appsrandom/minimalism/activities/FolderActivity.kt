@@ -1,4 +1,4 @@
-package com.appsrandom.minimalism.fragments
+package com.appsrandom.minimalism.activities
 
 import android.app.Activity
 import android.app.AlertDialog
@@ -8,83 +8,83 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.appsrandom.minimalism.R
-import com.appsrandom.minimalism.activities.CreateOrEditNoteActivity
-import com.appsrandom.minimalism.activities.MainActivity
 import com.appsrandom.minimalism.adapters.RVFoldersAdapter
 import com.appsrandom.minimalism.adapters.RVNotesAdapter
-import com.appsrandom.minimalism.databinding.FragmentNoteBinding
+import com.appsrandom.minimalism.databinding.ActivityFolderBinding
+import com.appsrandom.minimalism.db.NoteDatabase
+import com.appsrandom.minimalism.fragments.SearchFragment
 import com.appsrandom.minimalism.models.Folder
-import com.appsrandom.minimalism.models.Note
+import com.appsrandom.minimalism.repository.NoteRepository
 import com.appsrandom.minimalism.utils.SwipeToDelete
-import com.appsrandom.minimalism.utils.hideKeyboard
 import com.appsrandom.minimalism.viewModel.NoteViewModel
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.appsrandom.minimalism.viewModel.NoteViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textview.MaterialTextView
+import com.r0adkll.slidr.Slidr
 import com.thebluealliance.spectrum.SpectrumPalette
-import java.util.concurrent.TimeUnit
 
+class FolderActivity : AppCompatActivity(), RVFoldersAdapter.DataClickListener {
 
-class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
-
-    private lateinit var binding: FragmentNoteBinding
-    private val noteViewModel: NoteViewModel by activityViewModels()
+    lateinit var binding: ActivityFolderBinding
     private lateinit var rvNotesAdapter: RVNotesAdapter
     private lateinit var rvFoldersAdapter: RVFoldersAdapter
+    private lateinit var noteViewModel: NoteViewModel
+    private var folderId: Int = Int.MIN_VALUE
+    private var folderName: String = ""
+    private var folderColor: Int = -1
     private lateinit var sharedPreferencesView: SharedPreferences
     private lateinit var sharedPreferencesSort: SharedPreferences
-    private var folderColor = -1
     private lateinit var popupMenu: PopupMenu
     private lateinit var items: ArrayList<Folder>
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityFolderBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        requireView().hideKeyboard()
-    }
+        Slidr.attach(this)
 
+        popupMenu = PopupMenu(this, binding.popUpMenu)
+        val inflater: MenuInflater = popupMenu.menuInflater
+        inflater.inflate(R.menu.folder_view_items, popupMenu.menu)
+        showMenu()
 
+        folderId = intent.getIntExtra("folderId", Int.MIN_VALUE)
+        folderName = intent.getStringExtra("folderName").toString()
+        folderColor = intent.getIntExtra("folderColor", -1)
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        // Inflate the layout for this fragment
-        binding = FragmentNoteBinding.inflate(layoutInflater, container, false)
-//        val view = inflater.inflate(R.layout.fragment_note, container, false)
+        sharedPreferencesView = getSharedPreferences("sharedPrefsView", 0) as SharedPreferences
+        sharedPreferencesSort = getSharedPreferences("sharedPrefsSort", 0) as SharedPreferences
 
+        val noteRepository = NoteRepository(NoteDatabase.getDatabase(this))
+        val noteViewModelFactory = NoteViewModelFactory(noteRepository)
+        noteViewModel = ViewModelProvider(this, noteViewModelFactory)[NoteViewModel::class.java]
 
         try {
-            noteViewModel.getUnreferencedFolders().observe(viewLifecycleOwner) {list->
+            noteViewModel.getUnreferencedFolders().observe(this) {list->
                 noteViewModel.deleteFolders(list)
             }
         } catch (_: Exception) {
@@ -92,16 +92,16 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
         }
 
         try {
-            noteViewModel.getUnreferencedNotes().observe(viewLifecycleOwner) {
+            noteViewModel.getUnreferencedNotes().observe(this) {
                 noteViewModel.deleteNotes(it)
             }
         } catch (_: Exception) {
 
         }
 
-        noteViewModel.getAllNotesByOldest(Int.MIN_VALUE).observe(viewLifecycleOwner) {
+        noteViewModel.getAllNotesByOldest(folderId).observe(this) {
             if (it.isEmpty()) {
-                noteViewModel.getAllFolders(Int.MIN_VALUE).observe(viewLifecycleOwner) { list->
+                noteViewModel.getAllFolders(folderId).observe(this) {list->
                     binding.noteData.isVisible = list.isEmpty()
                 }
             } else {
@@ -109,28 +109,54 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
             }
         }
 
-        popupMenu = PopupMenu(requireContext(), binding.popUpMenu)
-        val popupInflater: MenuInflater = popupMenu.menuInflater
-        popupInflater.inflate(R.menu.folder_view_items, popupMenu.menu)
-        showMenu()
+        binding.appTitle.text = folderName
 
-        (activity as MainActivity).binding.bottomNavigationViewEditFolder.setOnItemSelectedListener {
+        recyclerViewDisplay()
+
+        binding.viewFab.setOnClickListener {
+            binding.viewFab.isClickable = false
+            val intent = Intent(this, CreateOrEditNoteActivity::class.java)
+            intent.putExtra("folderId", folderId)
+            startActivity(intent)
+        }
+
+        binding.innerFab.setOnClickListener {
+            binding.viewFab.isClickable = false
+            val intent = Intent(this, CreateOrEditNoteActivity::class.java)
+            intent.putExtra("folderId", folderId)
+            startActivity(intent)
+        }
+
+        binding.backButton.setOnClickListener {
+            finish()
+        }
+
+        swipeToDelete(binding.rvNote)
+
+        binding.search.setOnClickListener {
+            val ft = supportFragmentManager.beginTransaction()
+            ft.add(R.id.searchContainer, SearchFragment())
+            ft.addToBackStack(null)
+            ft.commit()
+        }
+
+        binding.bottomNavigationViewEditFolder.setOnItemSelectedListener {
             when(it.itemId) {
                 R.id.navEdit -> {
-                    showPopupWindowEditFolder(requireActivity())
+                    showPopupWindowEditFolder(this)
 
                     return@setOnItemSelectedListener false
                 }
                 R.id.navDelete -> {
 
-                    val builder = AlertDialog.Builder(requireContext())
-                    builder.setTitle("Delete Folder")
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Delete Note")
                     builder.setMessage("Are you sure you want to delete these folders permanently?")
                     builder.setIcon(R.drawable.ic_delete)
                         .setPositiveButton("Yes") { _, _ ->
-                            Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
                             noteViewModel.deleteFolders(items)
-                            (activity as MainActivity).recreate()
+                            this.recreate()
                         }
                         .setNegativeButton("No") { _, _ ->
                             // User cancelled the dialog
@@ -144,41 +170,9 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
             return@setOnItemSelectedListener false
         }
 
-        sharedPreferencesView = activity?.getSharedPreferences("sharedPrefsView", 0) as SharedPreferences
-        sharedPreferencesSort = activity?.getSharedPreferences("sharedPrefsSort", 0) as SharedPreferences
-
-        binding.viewFab.setOnClickListener {
-            binding.viewFab.isClickable = false
-            val intent = Intent(context, CreateOrEditNoteActivity::class.java)
-            startActivity(intent)
-        }
-
-        binding.innerFab.setOnClickListener {
-            binding.innerFab.isClickable = false
-            val intent = Intent(context, CreateOrEditNoteActivity::class.java)
-            startActivity(intent)
-        }
-
-        recyclerViewDisplay()
-
-        swipeToDelete(binding.rvNote)
-
-        //implementing search
-
-        binding.search.setOnClickListener {
-            val searchFragment = SearchFragment()
-            val bundle = Bundle()
-            bundle.putString("noteFragment", "NoteFragment")
-            searchFragment.arguments = bundle
-            val ft = parentFragmentManager.beginTransaction()
-            ft.replace(R.id.container, searchFragment)
-            ft.addToBackStack(null)
-            ft.commit()
-        }
-
         binding.popUpMenuSort.setOnClickListener {
-            val bottomSheetDialog = BottomSheetDialog(requireContext(), R.style.BottomSheetTheme)
-            val sheetView = LayoutInflater.from(activity).inflate(R.layout.modal_bottom_sheet_sort, null)
+            val bottomSheetDialog = BottomSheetDialog(this, R.style.BottomSheetTheme)
+            val sheetView = LayoutInflater.from(this).inflate(R.layout.modal_bottom_sheet_sort, null)
 
             val newest = sheetView.findViewById<LinearLayout>(R.id.newestSort)
             val oldest = sheetView.findViewById<LinearLayout>(R.id.oldestSort)
@@ -188,27 +182,27 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
 
             when(sharedPreferencesSort.getString("sort", "0")) {
                 "oldest" -> {
-                    oldest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
-                    newest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-                    color.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    oldest.setBackgroundColor(ContextCompat.getColor(this, R.color.add_note_bg))
+                    newest.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
+                    color.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
                 }
 
                 "newest" -> {
-                    oldest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-                    newest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
-                    color.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    oldest.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
+                    newest.setBackgroundColor(ContextCompat.getColor(this, R.color.add_note_bg))
+                    color.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
                 }
 
                 "color" -> {
-                    oldest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-                    newest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-                    color.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
+                    oldest.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
+                    newest.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
+                    color.setBackgroundColor(ContextCompat.getColor(this, R.color.add_note_bg))
                 }
 
                 else -> {
-                    oldest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
-                    newest.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-                    color.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    oldest.setBackgroundColor(ContextCompat.getColor(this, R.color.add_note_bg))
+                    newest.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
+                    color.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
                 }
             }
 
@@ -275,80 +269,27 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
 
         }
 
-        return binding.root
-    }
-
-    private fun showMenu() {
-
-        popupMenu.setOnMenuItemClickListener { menuItem ->
-            when(menuItem.itemId){
-                R.id.createFolder -> {
-                    showPopupWindow(requireActivity())
-                }
-                R.id.view -> {
-                    setNotesView()
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    exitOnBackPressed()
                 }
             }
-            true
-        }
-        binding.popUpMenu.setOnClickListener {
-            try {
-                val popUp = PopupMenu::class.java.getDeclaredField("mPopup")
-                popUp.isAccessible = true
-                val menu = popUp.get(popupMenu)
-                menu.javaClass
-                    .getDeclaredMethod("setForceShowIcon", Boolean::class.java)
-                    .invoke(menu, true)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                popupMenu.show()
-            }
-        }
+        )
+
     }
 
-    private fun setNotesView() {
-        val bottomSheetDialog = BottomSheetDialog(requireContext(), R.style.BottomSheetTheme)
-        val sheetView = LayoutInflater.from(activity).inflate(R.layout.modal_bottom_sheet, null)
-
-        val editorView = sharedPreferencesView.edit()
-
-        val listLayout = sheetView.findViewById<LinearLayout>(R.id.list)
-        val gridLayout = sheetView.findViewById<LinearLayout>(R.id.grid)
-
-        when(sharedPreferencesView.getString("view", "0")) {
-            "list" -> {
-                listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
-                gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
+    private fun exitOnBackPressed() {
+        try {
+            if (items.isEmpty()) {
+                finish()
+            } else {
+                this.recreate()
             }
-            "grid" -> {
-                gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
-                listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-            }
-            else -> {
-                gridLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.add_note_bg))
-                listLayout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white))
-            }
+        } catch (_: Exception) {
+            finish()
         }
-
-        listLayout.setOnClickListener {
-            editorView?.putString("view", "list")
-            editorView?.apply()
-            recyclerViewDisplay()
-
-            bottomSheetDialog.dismiss()
-        }
-
-        gridLayout.setOnClickListener {
-            editorView?.putString("view", "grid")
-            editorView?.apply()
-            recyclerViewDisplay()
-
-            bottomSheetDialog.dismiss()
-        }
-
-        bottomSheetDialog.setContentView(sheetView)
-        bottomSheetDialog.show()
     }
 
     private fun showPopupWindowEditFolder(activity: Activity) {
@@ -398,8 +339,81 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
                 items[0].folderName = folderName
                 items[0].isSelected = false
                 noteViewModel.updateFolder(items[0])
-                (activity as MainActivity).recreate()
+                this.recreate()
                 popupWindow.dismiss()
+            }
+        }
+    }
+
+    private fun setNotesView() {
+        val bottomSheetDialog = BottomSheetDialog(this, R.style.BottomSheetTheme)
+        val sheetView = LayoutInflater.from(this).inflate(R.layout.modal_bottom_sheet, null)
+
+        val editorView = sharedPreferencesView.edit()
+
+        val listLayout = sheetView.findViewById<LinearLayout>(R.id.list)
+        val gridLayout = sheetView.findViewById<LinearLayout>(R.id.grid)
+
+        when(sharedPreferencesView.getString("view", "0")) {
+            "list" -> {
+                listLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.add_note_bg))
+                gridLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
+            }
+            "grid" -> {
+                gridLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.add_note_bg))
+                listLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
+            }
+            else -> {
+                gridLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.add_note_bg))
+                listLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
+            }
+        }
+
+        listLayout.setOnClickListener {
+            editorView?.putString("view", "list")
+            editorView?.apply()
+            recyclerViewDisplay()
+
+            bottomSheetDialog.dismiss()
+        }
+
+        gridLayout.setOnClickListener {
+            editorView?.putString("view", "grid")
+            editorView?.apply()
+            recyclerViewDisplay()
+
+            bottomSheetDialog.dismiss()
+        }
+
+        bottomSheetDialog.setContentView(sheetView)
+        bottomSheetDialog.show()
+    }
+
+    private fun showMenu() {
+
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when(menuItem.itemId){
+                R.id.createFolder -> {
+                    showPopupWindow(this)
+                }
+                R.id.view -> {
+                    setNotesView()
+                }
+            }
+            true
+        }
+        binding.popUpMenu.setOnClickListener {
+            try {
+                val popUp = PopupMenu::class.java.getDeclaredField("mPopup")
+                popUp.isAccessible = true
+                val menu = popUp.get(popupMenu)
+                menu.javaClass
+                    .getDeclaredMethod("setForceShowIcon", Boolean::class.java)
+                    .invoke(menu, true)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                popupMenu.show()
             }
         }
     }
@@ -436,14 +450,16 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
         colorPickerFolder.setSelectedColor(folderColor)
         colorPickerFolder.setOnColorSelectedListener {
             folderColor = it
-            createFolderParentLayout.setBackgroundColor(folderColor)
+            createFolderParentLayout.setBackgroundColor(it)
         }
 
         val okBtn = view.findViewById<Button>(R.id.addBtn)
         okBtn.setOnClickListener {
             val folderName = view.findViewById<TextInputEditText>(R.id.folderName).text.toString()
             if (folderName.isNotBlank()) {
-                noteViewModel.insertFolder(Folder(folderName, folderColor))
+                val folder = Folder(folderName, folderColor)
+                folder.refFolderId = folderId
+                noteViewModel.insertFolder(folder)
                 popupWindow.dismiss()
             }
         }
@@ -456,10 +472,11 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
                 val note = rvNotesAdapter.currentList[position]
                 var actionBtnTapped = false
                 noteViewModel.deleteNote(note)
+//                binding.search.clearFocus()
 //                if (binding.search.text.toString().isEmpty()) {
 //                    observerDataChanges()
 //                }
-                val snackBar = Snackbar.make(requireView(), "Note Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                val snackBar = Snackbar.make(binding.rvBoth, "Note Deleted", Snackbar.LENGTH_LONG).addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                     override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                         super.onDismissed(transientBottomBar, event)
                     }
@@ -478,7 +495,7 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
                     animationMode = Snackbar.ANIMATION_MODE_FADE
                     setAnchorView(R.id.innerFab)
                 }
-                snackBar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.yellowOrange))
+                snackBar.setActionTextColor(ContextCompat.getColor(this@FolderActivity, R.color.yellowOrange))
                 snackBar.show()
             }
 
@@ -497,7 +514,7 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
             }
             Configuration.ORIENTATION_LANDSCAPE -> {
                 setUpRecyclerView(3)
-                setUpFolderRecyclerView(6)
+                setUpFolderRecyclerView(4)
             }
         }
     }
@@ -509,15 +526,14 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
             rvFoldersAdapter = RVFoldersAdapter()
             rvNotesAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             adapter = rvFoldersAdapter
-            rvFoldersAdapter.setDataPassListener(this@NoteFragment)
+            rvFoldersAdapter.setDataPassListener(this@FolderActivity)
         }
         observerFolderDataChanges()
     }
 
     private fun observerFolderDataChanges() {
 //        rvFoldersAdapter.submitList(listOf(Folder("g", -1)))
-        noteViewModel.getAllFolders(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
-            if (binding.noteData.isVisible) binding.noteData.visibility = View.GONE
+        noteViewModel.getAllFolders(folderId).observe(this) {list->
             
             rvFoldersAdapter.submitList(list)
         }
@@ -528,7 +544,7 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
             val whichView = sharedPreferencesView.getString("view", "0")
             layoutManager = when (whichView) {
                 "list" -> {
-                    LinearLayoutManager(requireContext())
+                    LinearLayoutManager(this@FolderActivity)
                 }
 
                 "grid" -> {
@@ -543,7 +559,7 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
             rvNotesAdapter = RVNotesAdapter()
             rvNotesAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             adapter = rvNotesAdapter
-            postponeEnterTransition(300L, TimeUnit.MILLISECONDS)
+            postponeEnterTransition()
             viewTreeObserver.addOnPreDrawListener {
                 startPostponedEnterTransition()
                 true
@@ -553,31 +569,30 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
     }
 
     private fun observerDataChanges() {
-
         when(sharedPreferencesSort.getString("sort", "0")) {
             "oldest" -> {
-                noteViewModel.getAllNotesByOldest(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
+                noteViewModel.getAllNotesByOldest(folderId).observe(this) {list->
                     
                     rvNotesAdapter.submitList(list)
                 }
             }
 
             "newest" -> {
-                noteViewModel.getAllNotesByNewest(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
+                noteViewModel.getAllNotesByNewest(folderId).observe(this) {list->
                     
                     rvNotesAdapter.submitList(list)
                 }
             }
 
             "color" -> {
-                noteViewModel.getAllNotesByColor(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
+                noteViewModel.getAllNotesByColor(folderId).observe(this) {list->
                     
                     rvNotesAdapter.submitList(list)
                 }
             }
 
             else -> {
-                noteViewModel.getAllNotesByOldest(Int.MIN_VALUE).observe(viewLifecycleOwner) {list->
+                noteViewModel.getAllNotesByOldest(folderId).observe(this) {list->
                     
                     rvNotesAdapter.submitList(list)
                 }
@@ -588,7 +603,6 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
     override fun onResume() {
         super.onResume()
         recyclerViewDisplay()
-        (activity as MainActivity).binding.bottomNavigationView.visibility = View.VISIBLE
         binding.viewFab.isClickable = true
     }
 

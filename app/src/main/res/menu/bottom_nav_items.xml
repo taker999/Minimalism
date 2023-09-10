@@ -9,4 +9,14 @@
         android:title="Settings"
         android:icon="@drawable/ic_settings" />
 
+    <item android:id="@+id/navEdit"
+        android:title="Edit"
+        android:visible="false"
+        android:icon="@drawable/ic_edit" />
+
+    <item android:id="@+id/navDelete"
+        android:title="Delete"
+        android:visible="false"
+        android:icon="@drawable/ic_delete" />
+
 </menu>

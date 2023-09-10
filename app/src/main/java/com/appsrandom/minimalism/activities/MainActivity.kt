@@ -1,19 +1,35 @@
 package com.appsrandom.minimalism.activities
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.PopupWindow
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.appsrandom.minimalism.R
+import com.appsrandom.minimalism.adapters.RVFoldersAdapter
 import com.appsrandom.minimalism.databinding.ActivityMainBinding
 import com.appsrandom.minimalism.db.NoteDatabase
 import com.appsrandom.minimalism.fragments.NoteFragment
 import com.appsrandom.minimalism.fragments.SettingsFragment
+import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.repository.NoteRepository
 import com.appsrandom.minimalism.viewModel.NoteViewModel
 import com.appsrandom.minimalism.viewModel.NoteViewModelFactory
+import com.google.android.gms.ads.MobileAds
+import com.google.android.material.textfield.TextInputEditText
+import com.thebluealliance.spectrum.SpectrumPalette
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,6 +41,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        MobileAds.initialize(this) {}
 
         loadFragment(NoteFragment(), true)
         binding.bottomNavigationView.selectedItemId = R.id.navNote

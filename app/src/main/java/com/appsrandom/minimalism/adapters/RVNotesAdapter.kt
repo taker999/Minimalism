@@ -1,9 +1,11 @@
 package com.appsrandom.minimalism.adapters
 
 import android.content.Intent
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ListAdapter
@@ -62,23 +64,20 @@ class RVNotesAdapter: ListAdapter<Note, RVNotesAdapter.NotesViewHolder>(DiffUtil
 
                 date.text = note.date
                 var color = note.color
-                CoroutineScope(Dispatchers.IO).launch {
-                    val sharedPreferences = parent.context.getSharedPreferences("sharedPrefs",
-                        AppCompatActivity.MODE_PRIVATE
-                    )
-                    val isDarkModeOn = sharedPreferences?.getBoolean("isDarkModeOn", false)
 
-                    withContext(Dispatchers.Main) {
-                        if (isDarkModeOn as Boolean && color == -1) {
-                            color = -16777216
-                            parent.setCardBackgroundColor(-16777216)
-                        } else if (!isDarkModeOn && color == -16777216) {
-                            color = -1
-                            parent.setCardBackgroundColor(-1)
-                        } else {
-                            parent.setCardBackgroundColor(color)
-                        }
-                    }
+                val sharedPreferences = parent.context.getSharedPreferences("sharedPrefs",
+                    AppCompatActivity.MODE_PRIVATE
+                )
+                val isDarkModeOn = sharedPreferences?.getBoolean("isDarkModeOn", false)
+
+                if (isDarkModeOn as Boolean && color == -1) {
+                    color = -16777216
+                    parent.setCardBackgroundColor(-16777216)
+                } else if (!isDarkModeOn && color == -16777216) {
+                    color = -1
+                    parent.setCardBackgroundColor(-1)
+                } else {
+                    parent.setCardBackgroundColor(color)
                 }
 
                 parent.setOnClickListener {
