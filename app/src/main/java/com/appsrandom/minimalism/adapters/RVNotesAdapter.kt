@@ -93,6 +93,7 @@ class RVNotesAdapter: ListAdapter<Note, RVNotesAdapter.NotesViewHolder>(DiffUtil
                         intent.putExtra("date", note.date)
                         intent.putExtra("color", color)
                         intent.putExtra("id", note.id)
+                        intent.putExtra("folderId", note.folderId)
                         parent.context.startActivity(intent)
                     } else {
                         val intent = Intent(parent.context, CreateOrEditNoteActivity::class.java)
@@ -101,6 +102,7 @@ class RVNotesAdapter: ListAdapter<Note, RVNotesAdapter.NotesViewHolder>(DiffUtil
                         intent.putExtra("date", note.date)
                         intent.putExtra("color", color)
                         intent.putExtra("id", note.id)
+                        intent.putExtra("folderId", note.folderId)
                         parent.context.startActivity(intent)
                     }
 
@@ -119,6 +121,7 @@ class RVNotesAdapter: ListAdapter<Note, RVNotesAdapter.NotesViewHolder>(DiffUtil
                         intent.putExtra("date", note.date)
                         intent.putExtra("color", color)
                         intent.putExtra("id", note.id)
+                        intent.putExtra("folderId", note.folderId)
                         parent.context.startActivity(intent)
                     } else {
                         val intent = Intent(parent.context, CreateOrEditNoteActivity::class.java)
@@ -127,6 +130,7 @@ class RVNotesAdapter: ListAdapter<Note, RVNotesAdapter.NotesViewHolder>(DiffUtil
                         intent.putExtra("date", note.date)
                         intent.putExtra("color", color)
                         intent.putExtra("id", note.id)
+                        intent.putExtra("folderId", note.folderId)
                         parent.context.startActivity(intent)
                     }
                 }
@@ -144,6 +148,7 @@ class RVNotesAdapter: ListAdapter<Note, RVNotesAdapter.NotesViewHolder>(DiffUtil
                         intent.putExtra("date", note.date)
                         intent.putExtra("color", color)
                         intent.putExtra("id", note.id)
+                        intent.putExtra("folderId", note.folderId)
                         parent.context.startActivity(intent)
                     } else {
                         val intent = Intent(parent.context, CreateOrEditNoteActivity::class.java)
@@ -152,6 +157,7 @@ class RVNotesAdapter: ListAdapter<Note, RVNotesAdapter.NotesViewHolder>(DiffUtil
                         intent.putExtra("date", note.date)
                         intent.putExtra("color", color)
                         intent.putExtra("id", note.id)
+                        intent.putExtra("folderId", note.folderId)
                         parent.context.startActivity(intent)
                     }
                 }
@@ -169,6 +175,7 @@ class RVNotesAdapter: ListAdapter<Note, RVNotesAdapter.NotesViewHolder>(DiffUtil
                         intent.putExtra("date", note.date)
                         intent.putExtra("color", color)
                         intent.putExtra("id", note.id)
+                        intent.putExtra("folderId", note.folderId)
                         parent.context.startActivity(intent)
                     } else {
                         val intent = Intent(parent.context, CreateOrEditNoteActivity::class.java)
@@ -177,6 +184,7 @@ class RVNotesAdapter: ListAdapter<Note, RVNotesAdapter.NotesViewHolder>(DiffUtil
                         intent.putExtra("date", note.date)
                         intent.putExtra("color", color)
                         intent.putExtra("id", note.id)
+                        intent.putExtra("folderId", note.folderId)
                         parent.context.startActivity(intent)
                     }
                 }

@@ -314,7 +314,11 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
                     } else {
                         Toast.makeText(this, "Unlocked", Toast.LENGTH_SHORT).show()
                         isLocked = "0"
-                        noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, isLocked, id))
+                        if (folderId == Int.MIN_VALUE) {
+                            noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, isLocked, id))
+                        } else {
+                            noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, isLocked, id, folderId))
+                        }
                         popupMenu.menu.findItem(R.id.lock).setIcon(R.drawable.ic_lock).title = "Lock"
                     }
                 }
@@ -345,13 +349,31 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
             if (binding.etTitle.text.toString().isBlank() && binding.etNoteContent.text.toString().isBlank()) {
                 finish()
             } else if (binding.etTitle.text.toString().isBlank()) {
-                noteViewModel.insertNote(Note("", binding.etNoteContent.text.toString(), currentDate, color, "1"))
+                if (folderId == Int.MIN_VALUE) {
+                    noteViewModel.insertNote(Note("", binding.etNoteContent.text.toString(), currentDate, color, "1"))
+                } else {
+                    val note = Note("", binding.etNoteContent.text.toString(), currentDate, color, "1")
+                    note.folderId = folderId
+                    noteViewModel.insertNote(note)
+                }
                 Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show()
             } else if (binding.etNoteContent.text.toString().isBlank()) {
-                noteViewModel.insertNote(Note(binding.etTitle.text.toString(), "", currentDate, color, "1"))
+                if (folderId == Int.MIN_VALUE) {
+                    noteViewModel.insertNote(Note(binding.etTitle.text.toString(), "", currentDate, color, "1"))
+                } else {
+                    val note = Note(binding.etTitle.text.toString(), "", currentDate, color, "1")
+                    note.folderId = folderId
+                    noteViewModel.insertNote(note)
+                }
                 Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show()
             } else {
-                noteViewModel.insertNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, "1"))
+                if (folderId == Int.MIN_VALUE) {
+                    noteViewModel.insertNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, "1"))
+                } else {
+                    val note = Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, "1")
+                    note.folderId = folderId
+                    noteViewModel.insertNote(note)
+                }
                 Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show()
             }
             finish()
@@ -365,8 +387,13 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show()
             isLocked = "1"
+            if (folderId == Int.MIN_VALUE) {
+                Log.d("ddd", folderId.toString())
+                noteViewModel.updateNote(Note(title.toString(), content.toString(), date.toString(), color, isLocked, id))
+            } else {
+                noteViewModel.updateNote(Note(title.toString(), content.toString(), date.toString(), color, isLocked, id, folderId))
+            }
             popupMenu.menu.findItem(R.id.lock).setIcon(R.drawable.ic_unlock).title = "Unlock"
-            noteViewModel.updateNote(Note(title.toString(), content.toString(), date.toString(), color, isLocked, id))
         }
     }
 

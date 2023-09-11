@@ -153,8 +153,10 @@
                     android:layout_marginBottom="20dp"
                     android:background="@drawable/rounded_search"
                     android:backgroundTint="@color/black"
-                    android:text="Print"
+                    android:text="Watch an Ad to Print"
                     android:textSize="20sp"
+                    android:drawableStart="@drawable/ic_ads"
+                    android:drawablePadding="10dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />

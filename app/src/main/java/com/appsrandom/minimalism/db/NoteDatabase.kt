@@ -30,16 +30,16 @@ abstract class NoteDatabase: RoomDatabase() {
 
         private val MIGRATION_2_3: Migration = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // Since we didn't alter the table, there's nothing else to do here.
-                db.execSQL("ALTER TABLE notes_table ADD COLUMN folder_id INT DEFAULT -2147483648")
+                // Add the folderId column to the notes_table
+                db.execSQL("ALTER TABLE notes_table ADD COLUMN folder_id INTEGER DEFAULT -2147483648")
 
-                db.execSQL("CREATE TABLE IF NOT EXISTS folders_table (\n" +
-                        "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
-                        "    folder_name TEXT,\n" +
-                        "    folder_color INTEGER DEFAULT -1,\n" +
-                        "    ref_folder_id INTEGER DEFAULT -2147483648,\n" +
-                        "    is_selected INTEGER DEFAULT 0\n" +
-                        ")")
+                // Create the folders_table if it doesn't exist
+                db.execSQL("CREATE TABLE IF NOT EXISTS folders_table (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "folder_name TEXT, " +
+                        "folder_color INTEGER DEFAULT -1, " +
+                        "ref_folder_id INTEGER DEFAULT -2147483648, " +
+                        "is_selected INTEGER DEFAULT 0)")
             }
         }
 
