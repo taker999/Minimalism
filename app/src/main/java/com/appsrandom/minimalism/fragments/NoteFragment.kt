@@ -9,24 +9,17 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -41,17 +34,9 @@ import com.appsrandom.minimalism.adapters.RVFoldersAdapter
 import com.appsrandom.minimalism.adapters.RVNotesAdapter
 import com.appsrandom.minimalism.databinding.FragmentNoteBinding
 import com.appsrandom.minimalism.models.Folder
-import com.appsrandom.minimalism.models.Note
 import com.appsrandom.minimalism.utils.SwipeToDelete
 import com.appsrandom.minimalism.utils.hideKeyboard
 import com.appsrandom.minimalism.viewModel.NoteViewModel
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.interstitial.InterstitialAd
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -73,9 +58,6 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
     private lateinit var popupMenu: PopupMenu
     private lateinit var items: ArrayList<Folder>
 
-    private var mInterstitialAd: InterstitialAd? = null
-    private final var TAG = "NoteFragment"
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requireView().hideKeyboard()
@@ -90,26 +72,6 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
         // Inflate the layout for this fragment
         binding = FragmentNoteBinding.inflate(layoutInflater, container, false)
 //        val view = inflater.inflate(R.layout.fragment_note, container, false)
-
-        val adRequest = AdRequest.Builder().build()
-
-        try {
-            Handler(Looper.getMainLooper()).postDelayed({
-                InterstitialAd.load(requireActivity(),"ca-app-pub-6575625115963390/5622725368", adRequest, object : InterstitialAdLoadCallback() {
-                    override fun onAdFailedToLoad(adError: LoadAdError) {
-                        Log.d(TAG, adError.toString())
-                        mInterstitialAd = null
-                    }
-
-                    override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                        Log.d(TAG, "Ad was loaded.")
-                        mInterstitialAd = interstitialAd
-                    }
-                })
-            }, 2*60*1000)
-        } catch (_: Exception) {
-
-        }
 
 
         try {
@@ -177,147 +139,15 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
         sharedPreferencesSort = activity?.getSharedPreferences("sharedPrefsSort", 0) as SharedPreferences
 
         binding.viewFab.setOnClickListener {
-
-            mInterstitialAd?.fullScreenContentCallback = object: FullScreenContentCallback() {
-                override fun onAdClicked() {
-                    // Called when a click is recorded for an ad.
-                    Log.d(TAG, "Ad was clicked.")
-                }
-
-                override fun onAdDismissedFullScreenContent() {
-                    // Called when ad is dismissed.
-
-                    binding.viewFab.isClickable = false
-                    val intent = Intent(context, CreateOrEditNoteActivity::class.java)
-                    startActivity(intent)
-
-                    Log.d(TAG, "Ad dismissed fullscreen content.")
-                    mInterstitialAd = null
-                    InterstitialAd.load(requireActivity(),"ca-app-pub-6575625115963390/5622725368", adRequest, object : InterstitialAdLoadCallback() {
-                        override fun onAdFailedToLoad(adError: LoadAdError) {
-                            Log.d(TAG, adError.toString())
-                            mInterstitialAd = null
-                        }
-
-                        override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                            Log.d(TAG, "Ad was loaded.")
-                            mInterstitialAd = interstitialAd
-                        }
-                    })
-                }
-
-                override fun onAdFailedToShowFullScreenContent(p0: AdError) {
-                    // Called when ad fails to show.
-                    Log.e(TAG, "Ad failed to show fullscreen content.")
-                    mInterstitialAd = null
-                    InterstitialAd.load(requireActivity(),"ca-app-pub-6575625115963390/5622725368", adRequest, object : InterstitialAdLoadCallback() {
-                        override fun onAdFailedToLoad(adError: LoadAdError) {
-                            Log.d(TAG, adError.toString())
-                            mInterstitialAd = null
-                        }
-
-                        override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                            Log.d(TAG, "Ad was loaded.")
-                            mInterstitialAd = interstitialAd
-                        }
-                    })
-                }
-
-                override fun onAdImpression() {
-                    // Called when an impression is recorded for an ad.
-                    Log.d(TAG, "Ad recorded an impression.")
-                }
-
-                override fun onAdShowedFullScreenContent() {
-                    // Called when ad is shown.
-                    Log.d(TAG, "Ad showed fullscreen content.")
-                }
-            }
-
-            if (mInterstitialAd != null) {
-                mInterstitialAd?.show(requireActivity())
-            } else {
-
-                binding.viewFab.isClickable = false
-                val intent = Intent(context, CreateOrEditNoteActivity::class.java)
-                startActivity(intent)
-
-                Log.d("TAG", "The interstitial ad wasn't ready yet.")
-            }
+            binding.viewFab.isClickable = false
+            val intent = Intent(context, CreateOrEditNoteActivity::class.java)
+            startActivity(intent)
         }
 
         binding.innerFab.setOnClickListener {
-
-            mInterstitialAd?.fullScreenContentCallback = object: FullScreenContentCallback() {
-                override fun onAdClicked() {
-                    // Called when a click is recorded for an ad.
-                    Log.d(TAG, "Ad was clicked.")
-                }
-
-                override fun onAdDismissedFullScreenContent() {
-                    // Called when ad is dismissed.
-
-                    binding.innerFab.isClickable = false
-                    val intent = Intent(context, CreateOrEditNoteActivity::class.java)
-                    startActivity(intent)
-
-                    Log.d(TAG, "Ad dismissed fullscreen content.")
-                    mInterstitialAd = null
-                    InterstitialAd.load(requireActivity(),"ca-app-pub-6575625115963390/5622725368", adRequest, object : InterstitialAdLoadCallback() {
-                        override fun onAdFailedToLoad(adError: LoadAdError) {
-                            Log.d(TAG, adError.toString())
-                            mInterstitialAd = null
-                        }
-
-                        override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                            Log.d(TAG, "Ad was loaded.")
-                            mInterstitialAd = interstitialAd
-                        }
-                    })
-                }
-
-                override fun onAdFailedToShowFullScreenContent(p0: AdError) {
-                    // Called when ad fails to show.
-                    Log.e(TAG, "Ad failed to show fullscreen content.")
-                    mInterstitialAd = null
-                    InterstitialAd.load(requireActivity(),"ca-app-pub-6575625115963390/5622725368", adRequest, object : InterstitialAdLoadCallback() {
-                        override fun onAdFailedToLoad(adError: LoadAdError) {
-                            Log.d(TAG, adError.toString())
-                            mInterstitialAd = null
-                        }
-
-                        override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                            Log.d(TAG, "Ad was loaded.")
-                            mInterstitialAd = interstitialAd
-                        }
-                    })
-                }
-
-                override fun onAdImpression() {
-                    // Called when an impression is recorded for an ad.
-                    Log.d(TAG, "Ad recorded an impression.")
-                }
-
-                override fun onAdShowedFullScreenContent() {
-                    // Called when ad is shown.
-                    Log.d(TAG, "Ad showed fullscreen content.")
-                }
-            }
-
-            if (mInterstitialAd != null) {
-                mInterstitialAd?.show(requireActivity())
-            } else {
-
-                binding.innerFab.isClickable = false
-                val intent = Intent(context, CreateOrEditNoteActivity::class.java)
-                startActivity(intent)
-
-                Log.d("TAG", "The interstitial ad wasn't ready yet.")
-            }
-
-//            binding.innerFab.isClickable = false
-//            val intent = Intent(context, CreateOrEditNoteActivity::class.java)
-//            startActivity(intent)
+            binding.innerFab.isClickable = false
+            val intent = Intent(context, CreateOrEditNoteActivity::class.java)
+            startActivity(intent)
         }
 
         recyclerViewDisplay()

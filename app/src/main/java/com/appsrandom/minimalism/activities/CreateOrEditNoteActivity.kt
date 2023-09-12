@@ -4,6 +4,8 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.print.PrintAttributes
 import android.print.PrintDocumentAdapter
 import android.print.PrintManager
@@ -24,6 +26,10 @@ import com.appsrandom.minimalism.models.Note
 import com.appsrandom.minimalism.repository.NoteRepository
 import com.appsrandom.minimalism.viewModel.NoteViewModel
 import com.appsrandom.minimalism.viewModel.NoteViewModelFactory
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.CoroutineScope
@@ -53,10 +59,32 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
     private lateinit var sharedPreferencesPassword: SharedPreferences
     private var folderId: Int = Int.MIN_VALUE
 
+    private var mInterstitialAd: InterstitialAd? = null
+    private final var TAG = "CoENote"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCreateOrEditNoteBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        try {
+            Handler(Looper.getMainLooper()).postDelayed({
+                val adRequest = AdRequest.Builder().build()
+                InterstitialAd.load(applicationContext,"ca-app-pub-6575625115963390/9419134606", adRequest, object : InterstitialAdLoadCallback() {
+                    override fun onAdFailedToLoad(adError: LoadAdError) {
+                        Log.d(TAG, adError.toString())
+                        mInterstitialAd = null
+                    }
+
+                    override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                        Log.d(TAG, "Ad was loaded.")
+                        mInterstitialAd = interstitialAd
+                    }
+                })
+            }, 15*1000)
+        } catch (_: Exception) {
+
+        }
 
         title = intent.getStringExtra("title")
         content = intent.getStringExtra("content")
@@ -159,6 +187,12 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
     }
 
     private fun saveNote() {
+
+        if (mInterstitialAd != null) {
+            mInterstitialAd?.show(this)
+        } else {
+            Log.d(TAG, "The interstitial ad wasn't ready yet.")
+        }
 
         if (binding.etTitle.text.toString().isBlank() && binding.etNoteContent.text.toString().isBlank()) {
             finish()
