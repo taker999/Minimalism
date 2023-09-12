@@ -179,7 +179,7 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
                 }
                 else -> {
                     if (content != binding.etNoteContent.text.toString() || colorMatch != color) {
-                        noteViewModel.updateNote(Note("", binding.etNoteContent.text.toString(), currentDate, color, isLocked, id))
+                        noteViewModel.updateNote(Note("", binding.etNoteContent.text.toString(), currentDate, color, isLocked, id, folderId))
                         Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                     }
                     finish()
@@ -202,7 +202,7 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
                 }
                 else -> {
                     if (title != binding.etTitle.text.toString() || colorMatch != color){
-                        noteViewModel.updateNote(Note(binding.etTitle.text.toString(), "", currentDate, color, isLocked, id))
+                        noteViewModel.updateNote(Note(binding.etTitle.text.toString(), "", currentDate, color, isLocked, id, folderId))
                         Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                     }
                     finish()
@@ -225,7 +225,7 @@ class CreateOrEditNoteActivity : AppCompatActivity() {
                 }
                 else -> {
                     if (title != binding.etTitle.text.toString() || content != binding.etNoteContent.text.toString() || colorMatch != color) {
-                        noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, isLocked, id))
+                        noteViewModel.updateNote(Note(binding.etTitle.text.toString(), binding.etNoteContent.text.toString(), currentDate, color, isLocked, id, folderId))
                         Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                     }
                     finish()
