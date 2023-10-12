@@ -3,12 +3,17 @@ package com.appsrandom.minimalism.fragments
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuInflater
@@ -19,6 +24,8 @@ import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -37,6 +44,11 @@ import com.appsrandom.minimalism.models.Folder
 import com.appsrandom.minimalism.utils.SwipeToDelete
 import com.appsrandom.minimalism.utils.hideKeyboard
 import com.appsrandom.minimalism.viewModel.NoteViewModel
+import com.bumptech.glide.Glide
+import com.bumptech.glide.Glide.*
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -58,6 +70,9 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
     private lateinit var popupMenu: PopupMenu
     private lateinit var items: ArrayList<Folder>
 
+    private var imageUri: Uri? = null
+    private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requireView().hideKeyboard()
@@ -73,6 +88,63 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
         binding = FragmentNoteBinding.inflate(layoutInflater, container, false)
 //        val view = inflater.inflate(R.layout.fragment_note, container, false)
 
+
+        val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
+
+        val sharedPreferencesBackgroundImage = activity?.getSharedPreferences("BackgroundImage", MODE_PRIVATE)
+        val editor = sharedPreferencesBackgroundImage?.edit()
+        pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                imageUri = data?.data
+                requireContext().contentResolver.takePersistableUriPermission(imageUri as Uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                // Use the selectedImageUri for further processing
+                editor?.putString("imageUri", imageUri.toString())
+                editor?.apply()
+                with(this)
+                    .load(imageUri)
+                    .centerCrop()
+                    .apply(RequestOptions()
+                        .override(screenWidth, screenHeight) // Resize the image to the device's screen dimensions
+                    )
+                    .into(object : CustomTarget<Drawable>() {
+                        override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                            binding.backgroundImage.background = resource
+                        }
+
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            // Handle cleared state if needed
+                        }
+                    })
+//                binding.backgroundImage.setImageURI(imageUri)
+            }
+        }
+
+
+        val imageUriAsString = sharedPreferencesBackgroundImage?.getString("imageUri", null)
+
+// Convert the string back to a URI
+        val storedUri: Uri? = imageUriAsString?.let { Uri.parse(it) }
+
+        if (storedUri != null) {
+            // You can use storedUri as needed
+            with(this)
+                .load(storedUri)
+                .centerCrop()
+                .apply(RequestOptions()
+                    .override(screenWidth, screenHeight) // Resize the image to the device's screen dimensions
+                )
+                .into(object : CustomTarget<Drawable>() {
+                    override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                        binding.backgroundImage.background = resource
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // Handle cleared state if needed
+                    }
+                })
+        }
 
         try {
             noteViewModel.getUnreferencedFolders().observe(viewLifecycleOwner) {list->
@@ -269,6 +341,13 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
         return binding.root
     }
 
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.type = "image/*"
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        pickImageLauncher.launch(intent)
+    }
+
     private fun showMenu() {
 
         popupMenu.setOnMenuItemClickListener { menuItem ->
@@ -278,6 +357,9 @@ class NoteFragment : Fragment(), RVFoldersAdapter.DataClickListener {
                 }
                 R.id.view -> {
                     setNotesView()
+                }
+                R.id.setBackground -> {
+                    openGallery()
                 }
             }
             true

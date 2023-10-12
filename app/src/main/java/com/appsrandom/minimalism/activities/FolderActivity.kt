@@ -6,10 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuInflater
@@ -21,6 +24,9 @@ import android.widget.PopupMenu
 import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
@@ -39,6 +45,10 @@ import com.appsrandom.minimalism.repository.NoteRepository
 import com.appsrandom.minimalism.utils.SwipeToDelete
 import com.appsrandom.minimalism.viewModel.NoteViewModel
 import com.appsrandom.minimalism.viewModel.NoteViewModelFactory
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -46,6 +56,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textview.MaterialTextView
 import com.r0adkll.slidr.Slidr
 import com.thebluealliance.spectrum.SpectrumPalette
+
 
 class FolderActivity : AppCompatActivity(), RVFoldersAdapter.DataClickListener {
 
@@ -60,12 +71,73 @@ class FolderActivity : AppCompatActivity(), RVFoldersAdapter.DataClickListener {
     private lateinit var sharedPreferencesSort: SharedPreferences
     private lateinit var popupMenu: PopupMenu
     private lateinit var items: ArrayList<Folder>
+
+    private var imageUri: Uri? = null
+    private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFolderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         Slidr.attach(this)
+
+        val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
+
+        val sharedPreferencesBackgroundImage = getSharedPreferences("BackgroundImage", MODE_PRIVATE)
+        val editor = sharedPreferencesBackgroundImage?.edit()
+        pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                imageUri = data?.data
+                contentResolver.takePersistableUriPermission(imageUri as Uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                // Use the selectedImageUri for further processing
+                editor?.putString("imageUri", imageUri.toString())
+                editor?.apply()
+
+                Glide.with(this)
+                    .load(imageUri)
+                    .centerCrop()
+                    .apply(RequestOptions()
+                        .override(screenWidth, screenHeight) // Resize the image to the device's screen dimensions
+                    )
+                    .into(object : CustomTarget<Drawable>() {
+                        override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                            binding.backgroundImage.background = resource
+                        }
+
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            // Handle cleared state if needed
+                        }
+                    })
+//                binding.backgroundImage.setImageURI(imageUri)
+            }
+        }
+
+
+        val imageUriAsString = sharedPreferencesBackgroundImage?.getString("imageUri", null)
+
+// Convert the string back to a URI
+        val storedUri: Uri? = imageUriAsString?.let { Uri.parse(it) }
+
+        if (storedUri != null) {
+            // You can use storedUri as needed
+            Glide.with(this)
+                .load(storedUri)
+                .centerCrop()
+                .apply(RequestOptions()
+                    .override(screenWidth, screenHeight) // Resize the image to the device's screen dimensions
+                )
+                .into(object : CustomTarget<Drawable>() {
+                    override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                        binding.backgroundImage.background = resource
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // Handle cleared state if needed
+                    }
+                })
+        }
 
         popupMenu = PopupMenu(this, binding.popUpMenu)
         val inflater: MenuInflater = popupMenu.menuInflater
@@ -399,6 +471,9 @@ class FolderActivity : AppCompatActivity(), RVFoldersAdapter.DataClickListener {
                 R.id.view -> {
                     setNotesView()
                 }
+                R.id.setBackground -> {
+                    openGallery()
+                }
             }
             true
         }
@@ -416,6 +491,13 @@ class FolderActivity : AppCompatActivity(), RVFoldersAdapter.DataClickListener {
                 popupMenu.show()
             }
         }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.type = "image/*"
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        pickImageLauncher.launch(intent)
     }
 
     private fun showPopupWindow(activity: Activity) {

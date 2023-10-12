@@ -9,4 +9,8 @@
         android:title="View"
         android:icon="@drawable/ic_view" />
 
+    <item android:id="@+id/setBackground"
+        android:title="Set Background image"
+        android:icon="@drawable/ic_image" />
+
 </menu>

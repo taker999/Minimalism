@@ -15,8 +15,8 @@ android {
         applicationId "com.appsrandom.minimalism"
         minSdk 24
         targetSdk 34
-        versionCode 24
-        versionName "6.18"
+        versionCode 25
+        versionName "7.18"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -127,5 +127,8 @@ dependencies {
 
     //AdMob
     implementation 'com.google.android.gms:play-services-ads:22.3.0'
+
+    //Glide
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
 
 }
